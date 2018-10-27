@@ -168,8 +168,3 @@ def validate_property(prop_name, prop_schema, prop_data):
 
     if conditions:
         raise SchemaError(f"the conditions {conditions} could not be validated")
-
-
-def validate_object(obj_name, obj_data):
-    if not isinstance(obj_data, dict):
-        raise ValidationError(f"{obj_name} is not a dict (JSON object)")
