@@ -4,8 +4,6 @@ The main idea is documented in general.py
 
 import general
 
-regex_patterns = general.regex_patterns.copy()
-
 required_properties = general.required_properties + ['publisher']
 
 properties = general.properties.copy()
