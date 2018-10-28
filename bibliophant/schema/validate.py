@@ -12,9 +12,9 @@ Usually it is not actively checked if the schema makes sense (cf. SchemaError).
 import importlib
 import re
 
-string_format_patterns = {}
-string_format_patterns['uri'] = re.compile(r"^\w+:(\/?\/?)[^\s]+$")
-string_format_patterns['email'] = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
+_string_format_patterns = {}
+_string_format_patterns['uri'] = re.compile(r"^\w+:(\/?\/?)[^\s]+$")
+_string_format_patterns['email'] = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 
 
 class ValidationError(Exception):
@@ -105,10 +105,10 @@ def validate_property(prop_name, prop_schema, prop_data):
         if 'format' in prop_schema:
             conditions.remove('format')
             if prop_schema['format'] == 'uri':
-                if not string_format_patterns['uri'].search(prop_data):
+                if not _string_format_patterns['uri'].search(prop_data):
                     raise ValidationError(f"{prop_name} did not match the URI format")
             elif prop_schema['format'] == 'email':
-                if not string_format_patterns['email'].search(prop_data):
+                if not _string_format_patterns['email'].search(prop_data):
                     raise ValidationError(f"{prop_name} did not match the email format")
             else:
                 raise SchemaError(f"the string format {prop_schema['format']} is not defined or implemented")
