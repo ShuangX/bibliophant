@@ -109,21 +109,21 @@ properties['urls'] = {
     'description': 'URL(s) related to the work',
     'type': 'array',
     'items': {
-        'description': 'description of a hyperlink',
+        'description': 'a URL and a optional description of the hyperlink',
         'type': 'object',
         'title': 'URL',
-        'required': ['name', 'url'],
+        'required': ['url'],
         'properties': {
-            'name': {
-                'description': 'short description of the URL',
-                'type': 'string',
-                'minLength': 3
-            },
             'url': {
                 'description': 'URL',
                 'type': 'string',
                 'format': 'uri',
                 'pattern': re.compile("""^(https?|ftp)://""")
+            },
+            'description': {
+                'description': 'short description of the URL',
+                'type': 'string',
+                'minLength': 3
             }
         },
         'additionalProperties': False
