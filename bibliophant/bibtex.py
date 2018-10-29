@@ -30,7 +30,7 @@ def export(record):
     """returns a BibTeX record as a string
     The function assumes that the input is valid.
     """
-    r = "@" + record['type'] + "{" + record['key'] + "},\n"
+    r = "@" + record['type'] + "{" + record['key'] + ",\n"
     r += "  title     = {" + record['title'] + "},\n"
     r += "  author    = {" + _make_author_string(record) + "},\n"
     r += "  year      = {" + str(record['year']) +"},\n"
