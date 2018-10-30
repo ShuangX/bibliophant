@@ -1,13 +1,13 @@
 """JSON schema for bibliographic records of type article
-The main idea is documented in general.py
+The main idea is documented in common.py
 """
 
-import general
+from bibliophant.schema import common
 
-required_properties = general.required_properties + ['journal']
+required_properties = common.required_properties + ['journal']
 # 'volume' might also be considered as a required property!
 
-properties = general.properties.copy()
+properties = common.properties.copy()
 
 properties['type'] = {
     'description': 'this bibliographic record is of type article',
@@ -44,4 +44,4 @@ properties['abstract'] = {
     'minLength': 10
 }
 
-schema = general.Schema(required_properties, properties)
+schema = common.Schema(required_properties, properties)

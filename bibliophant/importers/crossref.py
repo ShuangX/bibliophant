@@ -3,22 +3,23 @@
 Refer to http://labs.crossref.org/site/quick_and_dirty_api_guide.html
 for more information.
 
-This code is adapted from fxcoudert/tools on GitHub.
+This code is adapted from fxcoudert/tools/doi2bib (on GitHub).
 """
 
 from xml.dom.minidom import parseString as parse_xml
 from urllib.parse import urlencode
 from urllib.request import urlopen, Request
-from commands.add import key_generator
 from unicodedata import normalize
+
+from bibliophant.commands.add import key_generator
 
 
 def _get_item(container, name):
-    list = container.getElementsByTagName(name)
-    if len(list) == 0:
+    elements = container.getElementsByTagName(name)
+    if len(elements) == 0:
         return None
     else:
-        return list[0]
+        return elements[0]
 
 
 def _get_data(node):
@@ -28,7 +29,7 @@ def _get_data(node):
         return node.firstChild.data
 
 
-def get_record(doi):
+def doi_to_record(doi):
     """returns a record (dict / JSON) given a DOI
     The DOI must be in the format specified by the schema,
     i.e. a string without the URL part.

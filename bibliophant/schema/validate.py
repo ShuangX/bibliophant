@@ -9,7 +9,7 @@ The module only validates the data against the schema.
 Usually it is not actively checked if the schema makes sense (cf. SchemaError).
 """
 
-import importlib
+from importlib import import_module
 import re
 
 _string_format_patterns = {}
@@ -40,10 +40,10 @@ def validate_record(record):
         raise ValidationError("record has no 'type' property")
 
     try:
-        record_type_module = importlib.import_module(record_type)
+        record_type_module = import_module('.' + record_type, package='bibliophant.schema')
         schema = record_type_module.schema
     except:
-        raise ValidationError(f"record type {record_type} is not defined")
+        raise ValidationError(f'record type {record_type} is not defined')
 
     if not all((prop in record) for prop in schema.required_properties):
         raise ValidationError(f'record must contain all required_properties {required_properties}')

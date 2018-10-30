@@ -1,4 +1,9 @@
-"""export bibliographic records in BibTeX format"""
+"""export bibliographic records in BibTeX format
+
+It is assumed that UTF8 is understood by the software that consumes the output.
+If you need any char replacement for non-UTF8 software you may adapt from
+fxcoudert/tools/doi2bib (on GitHub).
+"""
 
 _month_codes = {
     1: 'jan',
@@ -26,7 +31,7 @@ def _make_author_string(record):
     return " and ".join(authors)
 
 
-def export(record):
+def record_to_bibtex(record):
     """returns a BibTeX record as a string
     The function assumes that the input is valid.
     """
