@@ -16,29 +16,28 @@ from bibliophant.commands.add import key_generator
 
 def _get_item(container, name):
     elements = container.getElementsByTagName(name)
-    if len(elements) == 0:
-        return None
-    else:
+    if elements:
         return elements[0]
+    return None
 
 
 def _get_data(node):
-    if node is None:
-        return None
-    else:
+    if node:
         return node.firstChild.data
+    return None
 
 
-_replacements = {
+_REPLACEMENTS = {
     '\ufb01': 'fi',
     '\n': ' '
 }
 
 
-def _format_string(string):
-    string = normalize('NFKD', string).strip()
-    l = (_replacements[c] if c in _replacements else c for c in string)
-    return ''.join(l)
+def _format_string(string: str) -> str:
+    string = normalize('NFKD', string)
+    string = ' '.join(string.split())
+    string = ''.join(_REPLACEMENTS[c] if c in _REPLACEMENTS else c for c in string)
+    return string
 
 
 def doi_to_record(doi):
@@ -58,10 +57,10 @@ def doi_to_record(doi):
     doc = parse_xml(urlopen(url).read())
     records = doc.getElementsByTagName('journal')
 
-    if len(records) == 0:
+    if not records:
         raise Exception('CrossRef returned no records')
 
-    if (len(records) != 1):
+    if len(records) != 1:
         raise Exception('CrossRef returned more than one record')
 
     record = records[0]

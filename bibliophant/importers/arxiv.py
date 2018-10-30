@@ -1,10 +1,13 @@
 """get bibliographic data from arxiv.org (and crossref.org)"""
 
-from urllib.request import urlopen, Request
+from urllib.request import urlopen, Request, urlretrieve
 from xml.dom.minidom import parseString as parse_xml
+import os
 
 from bibliophant.importers.crossref import _get_item, _get_data, _format_string, doi_to_record
 from bibliophant.commands.add import key_generator
+
+ROOT = '../records'
 
 
 def _author_from_name(name):
@@ -24,10 +27,10 @@ def arxiv_id_to_record(arxiv_id):
 
     records = doc.getElementsByTagName('entry')
 
-    if len(records) == 0:
+    if not records:
         raise Exception('arXiv returned no records')
 
-    if (len(records) != 1):
+    if len(records) != 1:
         raise Exception('arXiv returned more than one record')
 
     record = records[0]
@@ -96,3 +99,24 @@ def arxiv_id_to_record(arxiv_id):
         res['abstract'] = _format_string(summary)
 
     return res
+
+
+def download_arxiv_eprint(record, overwrite=False):
+    """downloads the latest PDF for a given arXiv id"""
+    try:
+        arxiv_id = record['eprint']['eprint']
+    except:
+        raise Exception('the record has no eprint field that holds a arXiv id')
+
+    record_folder = os.path.join(ROOT, record['key'])
+
+    pdf_file_path = os.path.join(record_folder, record['title'] + '.pdf')
+
+    if not overwrite and os.path.exists(pdf_file_path):
+        raise Exception('the PDF file already exists')
+
+    _, msg = urlretrieve('https://arxiv.org/pdf/' + arxiv_id + '.pdf', pdf_file_path)
+
+    if msg.get_content_type() != 'application/pdf':
+        os.remove(pdf_file_path)
+        raise Exception('something went wrong with the download')

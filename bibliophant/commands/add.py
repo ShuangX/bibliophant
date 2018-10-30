@@ -26,5 +26,5 @@ def store_record(record, overwrite=False):
     else:
         os.makedirs(record_folder)
     record_file = os.path.join(record_folder, record['key'] + '.json')
-    with open(record_file, 'w') as fp:
-        json.dump(record, fp, indent=4)
+    with open(record_file, 'w') as file:
+        json.dump(record, file, indent=4)
