@@ -38,6 +38,32 @@ properties['pages'] = {
     'minLength': 1
 }
 
+properties['eprint'] = {
+    'description': 'information for referring to eprints',
+    'type': 'object',
+    'title': 'eprint',
+    'required': ['eprint'],
+    'properties': {
+        'eprint': {
+            'description': "eprint field (eg. 'hep-ph/9609357' or '0707.3168')",
+            'type': 'string',
+            'minLength': 9
+        },
+        'archive_prefix': {
+            'description': "for new style arXiv identifiers (eg. 'arXiv')",
+            'type': 'string',
+            'minLength': 5
+        },
+        'primary_class': {
+            'description': "for new style arXiv identifiers (eg. 'physics.flu-dyn')",
+            'type': 'string',
+            'minLength': 5
+        }
+    },
+    'additionalProperties': False
+}
+# for further information go to https://arxiv.org/hypertex/bibstyles/
+
 properties['abstract'] = {
     'description': 'the abstract of the article',
     'type': 'string',

@@ -8,7 +8,7 @@ from bibliophant.schema.validate import validate_record
 ROOT = '../records'
 
 
-def key_generator(authors, year):
+def key_generator(year, authors):
     """adds a key to the record"""
     key = str(year)
     for author in authors:

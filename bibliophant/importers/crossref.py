@@ -95,7 +95,7 @@ def doi_to_record(doi):
 
     res = {}
     res['type'] = 'article'
-    res['key'] = key_generator(authors, year)
+    res['key'] = key_generator(year, authors)
 
     title = _get_data(_get_item(journal_article, 'title'))
     if title:

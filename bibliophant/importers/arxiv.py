@@ -2,9 +2,19 @@
 
 from urllib.request import urlopen, Request
 from xml.dom.minidom import parseString as parse_xml
-from unicodedata import normalize
 
-from bibliophant.importers.crossref import _get_item, _get_data, doi_to_record
+from bibliophant.importers.crossref import _get_item, _get_data, _format_string, doi_to_record
+from bibliophant.commands.add import key_generator
+
+
+def _author_from_name(name):
+    """just guessing that the last word is the last name"""
+    words = name.split(' ')
+    author = {
+        'last': _format_string(words[-1]),
+        'first': _format_string(' '.join(words[:-1]))
+    }
+    return author
 
 
 def arxiv_id_to_record(arxiv_id):
@@ -23,28 +33,66 @@ def arxiv_id_to_record(arxiv_id):
     record = records[0]
 
     doi = _get_data(_get_item(record, 'arxiv:doi'))
-    if not doi:
-        raise Exception('arXiv entry does not have a DOI')
+    if doi:
+        res = doi_to_record(doi)
+    else:
+        res = {}
+        res['type'] = 'article'
 
-    res = doi_to_record(doi)
+        authors = []
+        for author in record.getElementsByTagName('author'):
+            name = _get_data(_get_item(author, 'name'))
+            authors.append(_author_from_name(name))
 
-    for link in record.getElementsByTagName('link'):
-        if link.hasAttribute('title'):
-            if link.getAttribute('title') == 'pdf':
-                pdf_link = link.getAttribute('href')
-                break
-    if pdf_link:
-        if 'urls' not in res:
-            res['urls'] = []
-        res['urls'].append(
-            {
-                'url': pdf_link,
-                'description': 'PDF on arXiv'
-            }
-        )
+        date = _get_data(_get_item(record, 'published'))
+        if date:
+            year = int(date[:4])
+            month = int(date[5:7])
+
+        if year and authors:
+            res['key'] = key_generator(year, authors)
+
+        title = _get_data(_get_item(record, 'title'))
+        if title:
+            res['title'] = _format_string(title)
+
+        if authors:
+            res['authors'] = authors
+
+        if date:
+            res['year'] = year
+            res['month'] = month
+
+        res['journal'] = 'arXiv e-print'
+
+    res['eprint'] = {}
+    if '/' not in arxiv_id:
+        # new style id
+        categorys = record.getElementsByTagName('category')
+        primary_category = categorys[0].getAttribute('term')
+        res['eprint']['archive_prefix'] = 'arXiv'
+        res['eprint']['eprint'] = arxiv_id
+        res['eprint']['primary_class'] = primary_category
+    else:
+        # old style (before April 2007) id
+        res['eprint']['eprint'] = arxiv_id
+
+    # for link in record.getElementsByTagName('link'):
+    #     if link.getAttribute('title') == 'pdf':
+    #             pdf_link = link.getAttribute('href')
+    #             break
+    # if pdf_link:
+    #     if 'urls' not in res:
+    #         res['urls'] = []
+    #     res['urls'].append(
+    #         {
+    #             'url': pdf_link,
+    #             'description': 'PDF on arXiv'
+    #         }
+    #     )
 
     summary = _get_data(_get_item(record, 'summary'))
     if summary:
-        res['abstract'] = normalize('NFKD', summary).strip().replace('\n', ' ')
+        res['abstract'] = _format_string(summary)
 
     return res
