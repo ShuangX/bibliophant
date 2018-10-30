@@ -120,6 +120,9 @@ def doi_to_record(doi):
 
     first_page = _get_data(_get_item(journal_article, 'first_page'))
     last_page = _get_data(_get_item(journal_article, 'last_page'))
-    res['pages'] = _format_string(first_page + '--' + last_page)
+    if first_page and last_page:
+        res['pages'] = _format_string(first_page + '--' + last_page)
+    elif first_page and not last_page:
+        res['pages'] = _format_string(first_page)
 
     return res
