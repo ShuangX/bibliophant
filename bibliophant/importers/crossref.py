@@ -29,6 +29,18 @@ def _get_data(node):
         return node.firstChild.data
 
 
+_replacements = {
+    '\ufb01': 'fi',
+    '\n': ' '
+}
+
+
+def _format_string(string):
+    string = normalize('NFKD', string).strip()
+    l = (_replacements[c] if c in _replacements else c for c in string)
+    return ''.join(l)
+
+
 def doi_to_record(doi):
     """returns a record (dict / JSON) given a DOI
     The DOI must be in the format specified by the schema,
@@ -62,22 +74,32 @@ def doi_to_record(doi):
     for node in journal_article.getElementsByTagName('person_name'):
         author = {}
         last = _get_data(_get_item(node, "surname"))
-        author['last'] = normalize('NFKD', last)
+        author['last'] = _format_string(last)
         first = _get_data(_get_item(node, "given_name"))
-        author['first'] = normalize('NFKD', first)
+        author['first'] = _format_string(first)
         authors.append(author)
 
     journal_issue_year = _get_data(_get_item(journal_issue, 'year'))
     journal_article_year = _get_data(_get_item(journal_article, 'year'))
-    assert(journal_issue_year == journal_article_year)
-    year = int(journal_issue_year)
+    if journal_article_year and not journal_issue_year:
+        year = int(journal_article_year)
+    elif journal_article_year and journal_issue_year:
+        if journal_article_year == journal_issue_year:
+            year = int(journal_article_year)
+        else:
+            raise Exception(f'journal_article_year = {journal_article_year} != journal_issue_year = {journal_issue_year}')
+    elif not journal_article_year and journal_issue_year:
+        year = int(journal_issue_year)
+    elif not journal_article_year and not journal_issue_year:
+        raise Exception('the record does not contain a year')
 
     res = {}
     res['type'] = 'article'
     res['key'] = key_generator(authors, year)
 
     title = _get_data(_get_item(journal_article, 'title'))
-    res['title'] = normalize('NFKD', title)
+    if title:
+        res['title'] = _format_string(title)
 
     res['authors'] = authors
     res['year'] = year
@@ -87,18 +109,18 @@ def doi_to_record(doi):
 
     if journal_metadata:
         journal = _get_data(_get_item(journal_metadata, 'full_title'))
-        res['journal'] = normalize('NFKD', journal)
+        res['journal'] = _format_string(journal)
         # journal_abbrev_title = _get_data(_get_item(journal_metadata, 'abbrev_title'))
 
     number = _get_data(_get_item(journal_issue, 'issue'))
     if number:
-        res['number'] = normalize('NFKD', number)
+        res['number'] = _format_string(number)
     volume = _get_data(_get_item(journal_issue, "volume"))
     if volume:
-        res['volume'] = normalize('NFKD', volume)
+        res['volume'] = _format_string(volume)
 
     first_page = _get_data(_get_item(journal_article, 'first_page'))
     last_page = _get_data(_get_item(journal_article, 'last_page'))
-    res['pages'] = normalize('NFKD', first_page + '--' + last_page)
+    res['pages'] = _format_string(first_page + '--' + last_page)
 
     return res
