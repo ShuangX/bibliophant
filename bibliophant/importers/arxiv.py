@@ -110,7 +110,8 @@ def download_arxiv_eprint(record, overwrite=False):
 
     record_folder = os.path.join(ROOT, record['key'])
 
-    pdf_file_path = os.path.join(record_folder, record['title'] + '.pdf')
+    file_name = record['title'].replace(':', '')
+    pdf_file_path = os.path.join(record_folder, file_name + '.pdf')
 
     if not overwrite and os.path.exists(pdf_file_path):
         raise Exception('the PDF file already exists')
