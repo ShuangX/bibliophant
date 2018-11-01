@@ -8,29 +8,37 @@ Note also that it is assumed that the schema is correct.
 The module only validates the data against the schema.
 Usually it is not actively checked if the schema makes sense (cf. SchemaError).
 """
+__all__ = ['validate_record', 'validate_property', 'ValidationError', 'SchemaError']
 
 from importlib import import_module
 import re
+from typing import Dict
 
-_string_format_patterns = {}
-_string_format_patterns['uri'] = re.compile(r"^\w+:(\/?\/?)[^\s]+$")
-_string_format_patterns['email'] = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
+_STRING_FORMAT_PATTERNS = {}
+_STRING_FORMAT_PATTERNS['uri'] = re.compile(r"^\w+:(\/?\/?)[^\s]+$")
+_STRING_FORMAT_PATTERNS['email'] = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 
 
 class ValidationError(Exception):
-    """raised if JSON data does not fit the schema"""
+    """Raised if JSON data does not fit the schema."""
     pass
 
 
 class SchemaError(Exception):
-    """raised if the JSON schema contains conditions which were not validated,
+    """Raised if the JSON schema contains conditions which were not validated,
     either because the schema is wrong,
     or the validation code is incomplete or incorrect.
     """
     pass
 
 
-def validate_record(record):
+def validate_record(record: Dict):
+    """Validates a record (JSON object) according to the schema.
+    The exact schema that is applied depends on record['type'].
+    If the record does not conform, ValidationError is raised.
+    If it is not clear how to validate the record, SchemaError is raised.
+    If everything is okay the function returns silently.
+    """
     if not isinstance(record, dict):
         raise ValidationError('record is not a dict (JSON object)')
 
@@ -46,7 +54,7 @@ def validate_record(record):
         raise ValidationError(f'record type {record_type} is not defined')
 
     if not all((prop in record) for prop in schema.required_properties):
-        raise ValidationError(f'record must contain all required_properties {required_properties}')
+        raise ValidationError(f'record must contain all required_properties {schema.required_properties}')
 
     record_property_names = set(record.keys())
 
@@ -64,7 +72,12 @@ def validate_record(record):
         raise ValidationError(f"record {record['key']} contains properties {record_property_names} which are not specified by the schema in {record_type}.py")
 
 
-def validate_property(prop_name, prop_schema, prop_data):
+def validate_property(prop_name: str, prop_schema: Dict, prop_data: Dict):
+    """Validates a property of a record (JSON object) according to the given schema.
+    If the property does not conform, ValidationError is raised.
+    If it is not clear how to validate the property, SchemaError is raised.
+    If everything is okay the function returns silently.
+    """
     prop_type = prop_schema['type']
 
     conditions = set(prop_schema.keys()) - {'type', 'description'}
@@ -105,10 +118,10 @@ def validate_property(prop_name, prop_schema, prop_data):
         if 'format' in prop_schema:
             conditions.remove('format')
             if prop_schema['format'] == 'uri':
-                if not _string_format_patterns['uri'].search(prop_data):
+                if not _STRING_FORMAT_PATTERNS['uri'].search(prop_data):
                     raise ValidationError(f"{prop_name} did not match the URI format")
             elif prop_schema['format'] == 'email':
-                if not _string_format_patterns['email'].search(prop_data):
+                if not _STRING_FORMAT_PATTERNS['email'].search(prop_data):
                     raise ValidationError(f"{prop_name} did not match the email format")
             else:
                 raise SchemaError(f"the string format {prop_schema['format']} is not defined or implemented")

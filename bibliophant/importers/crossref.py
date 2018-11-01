@@ -5,13 +5,15 @@ for more information.
 
 This code is adapted from fxcoudert/tools/doi2bib (on GitHub).
 """
+__all__ = ['doi_to_record']
 
 from xml.dom.minidom import parseString as parse_xml
 from urllib.parse import urlencode
 from urllib.request import urlopen, Request
 from unicodedata import normalize
+from typing import Dict
 
-from bibliophant.commands.add import key_generator
+from ..misc import key_generator
 
 
 def _get_item(container, name):
@@ -40,8 +42,8 @@ def _format_string(string: str) -> str:
     return string
 
 
-def doi_to_record(doi):
-    """returns a record (dict / JSON) given a DOI
+def doi_to_record(doi: str) -> Dict:
+    """Returns a record (dict / JSON) given a DOI.
     The DOI must be in the format specified by the schema,
     i.e. a string without the URL part.
     """

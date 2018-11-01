@@ -25,6 +25,7 @@ as compiled regex expressions.
 If you change a schema, make sure that corresponding validation code
 is present in validate.py.
 """
+__all__ = []
 
 import re
 from collections import namedtuple

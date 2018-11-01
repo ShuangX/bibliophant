@@ -1,8 +1,9 @@
 """JSON schema for bibliographic records of type article
 The main idea is documented in common.py
 """
+__all__ = []
 
-from bibliophant.schema import common
+from . import common
 
 required_properties = common.required_properties + ['journal']
 # 'volume' might also be considered as a required property!

@@ -1,8 +1,9 @@
 """JSON schema for bibliographic records of type book
 The main idea is documented in common.py
 """
+__all__ = []
 
-from bibliophant.schema import common
+from . import common
 
 required_properties = common.required_properties + ['publisher']
 
