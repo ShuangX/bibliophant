@@ -11,7 +11,9 @@ from ..misc import key_generator
 
 
 def _author_from_name(name: str) -> Dict[str, str]:
-    """just guessing that the last word is the last name"""
+    """Turns a name into a author by guessing that
+    the last word is the last name.
+    """
     words = name.split(' ')
     author = {
         'last': _format_string(words[-1]),
@@ -23,7 +25,8 @@ def _author_from_name(name: str) -> Dict[str, str]:
 def arxiv_id_to_record(arxiv_id: str) -> Dict:
     """Returns a record (dict / JSON) for a given arXiv ID."""
     url = Request('http://export.arxiv.org/api/query?id_list=' + arxiv_id)
-    doc = parse_xml(urlopen(url).read())
+    xml_data = urlopen(url).read()
+    doc = parse_xml(xml_data)
 
     records = doc.getElementsByTagName('entry')
 
@@ -87,25 +90,31 @@ def arxiv_id_to_record(arxiv_id: str) -> Dict:
     return res
 
 
-def download_arxiv_eprint(root_folder: str, record: Dict, overwrite: Optional[bool] = False):
+def download_arxiv_eprint(root_folder: Path,
+                          record: Dict,
+                          overwrite: Optional[bool] = False):
     """Downloads the latest PDF for a given arXiv ID.
-    root_folder can be a relative or absolute path."""
+    Raises ValueError if the record has no eprint field.
+    Raises FileNotFoundError if the record folder is not found.
+    Raises FileExistsError if the PDF file already exists and overwrite is False.
+    Raises RuntimeError if the file can't be downloaded.
+    """
     try:
         arxiv_id = record['eprint']['eprint']
     except:
-        raise Exception('the record has no eprint field that holds a arXiv id')
+        raise ValueError('the record has no eprint field that holds a arXiv id')
 
-    record_folder = Path(root_folder) / record['key']
+    record_folder = root_folder / record['key']
     if not record_folder.is_dir():
-        raise Exception(f"the record folder {record_folder} does not exist")
+        raise FileNotFoundError(f"the record folder {record_folder} does not exist")
 
     pdf_file = record_folder / (record['title'].replace(':', '') + '.pdf')
 
     if pdf_file.exists() and not overwrite:
-        raise Exception('the PDF file already exists')
+        raise FileExistsError('the PDF file already exists')
 
     _, msg = urlretrieve('https://arxiv.org/pdf/' + arxiv_id + '.pdf', pdf_file)
 
     if msg.get_content_type() != 'application/pdf':
         pdf_file.unlink()
-        raise Exception('something went wrong with the download')
+        raise RuntimeError('something went wrong with the download')

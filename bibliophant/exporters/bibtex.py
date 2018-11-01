@@ -7,6 +7,8 @@ fxcoudert/tools/doi2bib (on GitHub).
 __all__ = ['record_to_bibtex', 'records_to_bibfile']
 
 import pathlib
+from typing import Dict, List, Optional
+
 
 _MONTH_CODES = {
     1: 'jan',
@@ -24,23 +26,24 @@ _MONTH_CODES = {
 }
 
 
-def _make_author_string(record):
-    authors = []
-    for author in record['authors']:
+def _make_author_string(authors: List[Dict[str, str]]) -> str:
+    author_names = []
+    for author in authors:
         if 'first' in author:
-            authors.append(author['first'] + ' ' + author['last'])
+            author_names.append(author['first'] + ' ' + author['last'])
         else:
-            authors.append(author['last'])
-    return " and ".join(authors)
+            author_names.append(author['last'])
+    return " and ".join(author_names)
 
 
-def record_to_bibtex(record):
+# pylint: disable=R0912
+def record_to_bibtex(record: Dict) -> str:
     """Returns a BibTeX record as a string.
     The function assumes that the input is valid.
     """
     bibtex = "@" + record['type'] + "{" + record['key'] + ",\n"
     bibtex += "\ttitle         = {" + record['title'] + "},\n"
-    bibtex += "\tauthor        = {" + _make_author_string(record) + "},\n"
+    bibtex += "\tauthor        = {" + _make_author_string(record['authors']) + "},\n"
     bibtex += "\tyear          = {" + str(record['year']) +"},\n"
     if 'month' in record:
         bibtex += "\tmonth         = {" + _MONTH_CODES[record['month']] + "},\n"
@@ -61,7 +64,7 @@ def record_to_bibtex(record):
                 bibtex += "\teprint        = {" + record['eprint']['eprint'] + "},\n"
                 bibtex += "\tprimaryClass  = {" + record['eprint']['primary_class'] + "},\n"
             else:
-                # old style (before April 2007) id
+                # old style id (before April 2007)
                 bibtex += "\teprint        = {" + record['eprint']['eprint'] + "},\n"
     if record['type'] == 'book':
         bibtex += "\tpublisher     = {" + record['publisher']['name'] + "},\n"
@@ -77,19 +80,23 @@ def record_to_bibtex(record):
     return bibtex
 
 
-def records_to_bibfile(records, full_path, overwrite=False):
+def records_to_bibfile(records: List[Dict],
+                       full_path: str,
+                       overwrite: Optional[bool] = False):
     """Takes an iterable of records` and writes the BibTeX for all of them
     in a file.
     full_path can be relative or absolute and must end in '.bib'.
-    If the file already exists then overwrite must be True for something to happen.
+    Raises FileNotFoundError if the specified directory does not exist.
+    Raises ValueError if the file extension is not 'bib'.
+    Raises FileExistsError if the file already exists and overwrite is False.
     """
-    full_path = pathlib.Path(full_path).absolute()
+    full_path = pathlib.Path(full_path).resolve(strict=True)
     if not full_path.parent.is_dir():
-        raise Exception('the directory does not exist')
-    if full_path.name[-4:] != '.bib':
-        raise Exception("the file extension must be '.bib'")
+        raise FileNotFoundError(f'the directory {full_path.parent} does not exist')
+    if full_path.suffix != '.bib':
+        raise ValueError("the file extension must be '.bib'")
     if full_path.exists() and not overwrite:
-        raise Exception('the file already exists')
+        raise FileExistsError(f'the file {full_path} already exists')
     with open(full_path, 'w') as file:
         for record in records:
             file.write(record_to_bibtex(record) + '\n\n')
