@@ -30,138 +30,138 @@ __all__ = []
 import re
 from collections import namedtuple
 
-Schema = namedtuple('Schema', ['required_properties', 'properties'])
+Schema = namedtuple("Schema", ["required_properties", "properties"])
 
-required_properties = ['type', 'key', 'title', 'year', 'authors']
+required_properties = ["type", "key", "title", "year", "authors"]
 
 properties = {}
 
-properties['key'] = {
-    'description': 'identifier / (BibTeX) key',
-    'type': 'string',
-    'pattern': re.compile("""^[0-9]{4}[a-zA-Z]{2,}""")
+properties["key"] = {
+    "description": "identifier / (BibTeX) key",
+    "type": "string",
+    "pattern": re.compile("""^[0-9]{4}[a-zA-Z]{2,}"""),
 }
 
-properties['title'] = {
-    'description': 'the title of the work',
-    'type': 'string',
-    'minLength': 6
+properties["title"] = {
+    "description": "the title of the work",
+    "type": "string",
+    "minLength": 6,
 }
 
-properties['year'] = {
-    'description': 'the year of publication (or, if unpublished, the year of creation)',
-    'type': 'integer',
-    'minimum': 1800,
-    'maximum': 2030
+properties["year"] = {
+    "description": "the year of publication (or, if unpublished, the year of creation)",
+    "type": "integer",
+    "minimum": 1800,
+    "maximum": 2030,
 }
 
-properties['authors'] = {
-    'description': 'the author(s) of the work',
-    'type': 'array',
-    'items': {
-        'description': 'name(s) (and email address) of the author',
-        'type': 'object',
-        'title': 'author',
-        'required': ['last'],
-        'properties': {
-            'last': {
-                'description': "the author's last name",
-                'type': 'string',
-                'minLength': 2
+properties["authors"] = {
+    "description": "the author(s) of the work",
+    "type": "array",
+    "items": {
+        "description": "name(s) (and email address) of the author",
+        "type": "object",
+        "title": "author",
+        "required": ["last"],
+        "properties": {
+            "last": {
+                "description": "the author's last name",
+                "type": "string",
+                "minLength": 2,
             },
-            'first': {
-                'description': "the author's first name(s)",
-                'type': 'string',
-                'minLength': 2
+            "first": {
+                "description": "the author's first name(s)",
+                "type": "string",
+                "minLength": 2,
             },
-            'email': {
-                'description': "the author's email address",
-                'type': 'string',
-                'format': 'email'
-            }
+            "email": {
+                "description": "the author's email address",
+                "type": "string",
+                "format": "email",
+            },
         },
-        'additionalProperties': False
+        "additionalProperties": False,
     },
-    'minItems': 1,
-    'uniqueItems': True
+    "minItems": 1,
+    "uniqueItems": True,
 }
 
-properties['doi'] = {
-    'description': 'digital object identifier',
-    'type': 'string',
-    'pattern': re.compile("""(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?!["&\'<>])\S)+)""")
+properties["doi"] = {
+    "description": "digital object identifier",
+    "type": "string",
+    "pattern": re.compile("""(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?!["&\'<>])\S)+)""")
     # cf. https://stackoverflow.com/questions/27910/finding-a-doi-in-a-document-or-page
 }
 
-properties['month'] = {
-    'description': 'the month of publication (or, if unpublished, the month of creation)',
-    'type': 'integer',
-    'minimum': 1,
-    'maximum': 12
+properties["month"] = {
+    "description": "the month of publication (or, if unpublished, the month of creation)",
+    "type": "integer",
+    "minimum": 1,
+    "maximum": 12,
 }
 
-properties['note'] = {
-    'description': 'miscellaneous extra information',
-    'type': 'string',
-    'minLength': 2
+properties["note"] = {
+    "description": "miscellaneous extra information",
+    "type": "string",
+    "minLength": 2,
 }
 
-properties['urls'] = {
-    'description': 'URL(s) related to the work',
-    'type': 'array',
-    'items': {
-        'description': 'a URL and a optional description of the hyperlink',
-        'type': 'object',
-        'title': 'URL',
-        'required': ['url'],
-        'properties': {
-            'url': {
-                'description': 'URL',
-                'type': 'string',
-                'format': 'uri',
-                'pattern': re.compile("""^(https?|ftp)://""")
+properties["urls"] = {
+    "description": "URL(s) related to the work",
+    "type": "array",
+    "items": {
+        "description": "a URL and a optional description of the hyperlink",
+        "type": "object",
+        "title": "URL",
+        "required": ["url"],
+        "properties": {
+            "url": {
+                "description": "URL",
+                "type": "string",
+                "format": "uri",
+                "pattern": re.compile("""^(https?|ftp)://"""),
             },
-            'description': {
-                'description': 'short description of the URL',
-                'type': 'string',
-                'minLength': 3
-            }
-        },
-        'additionalProperties': False
-    },
-    'minItems': 1,
-    'uniqueItems': True
-}
-
-properties['tags'] = {
-    'description': 'tags / keywords related to the work',
-    'type': 'array',
-    'items': {
-        'description': 'description of a tag / keyword',
-        'type': 'object',
-        'title': 'tag',
-        'required': ['name'],
-        'properties': {
-            'name': {
-                'description': 'name of the tag',
-                'type': 'string',
-                'minLength': 2
+            "description": {
+                "description": "short description of the URL",
+                "type": "string",
+                "minLength": 3,
             },
-            'color': {
-                'description': "hex. color-code (eg. 'C31F25')",
-                'type': 'string',
-                'pattern': re.compile("""^[0-9A-F]{6}$""")
-            }
         },
-        'additionalProperties': False
+        "additionalProperties": False,
     },
-    'minItems': 1,
-    'uniqueItems': True
+    "minItems": 1,
+    "uniqueItems": True,
 }
 
-properties['open_access'] = {
-    'description': 'marks if the work can be accessed freely',
-    'type': 'boolean'
+properties["tags"] = {
+    "description": "tags / keywords related to the work",
+    "type": "array",
+    "items": {
+        "description": "description of a tag / keyword",
+        "type": "object",
+        "title": "tag",
+        "required": ["name"],
+        "properties": {
+            "name": {
+                "description": "name of the tag",
+                "type": "string",
+                "minLength": 2,
+            },
+            "color": {
+                "description": "hex. color-code (eg. 'C31F25')",
+                "type": "string",
+                "pattern": re.compile("""^[0-9A-F]{6}$"""),
+            },
+        },
+        "additionalProperties": False,
+    },
+    "minItems": 1,
+    "uniqueItems": True,
+}
+
+properties["open_access"] = {
+    "description": "marks if the work can be accessed freely",
+    "type": "boolean",
 }
 """If `open_access` is set then it must be either `true` or `false`.
 Hence for any given record, three different states are possible.
