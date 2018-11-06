@@ -8,6 +8,13 @@ __all__ = []
 
 from typing import Optional
 
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.types import Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from .base import ModelBase
+
 
 def validate_eprint(eprint: str) -> str:
     """validate the eprint field"""
@@ -48,13 +55,21 @@ def validate_primary_class(eprint: str, primary_class: Optional[str]) -> Optiona
     return primary_class
 
 
-class Eprint:
+class Eprint(ModelBase):
     """class for referring to (arXiv) eprints
     For further information go to:
     https://arxiv.org/hypertex/bibstyles/
     """
 
-    __slots__ = ("__eprint", "__archive_prefix", "__primary_class")
+    __tablename__ = "eprint"
+
+    id = Column(Integer, primary_key=True)
+
+    article = relationship("Article", back_populates="__eprint", uselist=False)
+
+    __eprint = Column(String, nullable=False)
+    __archive_prefix = Column(String)
+    __primary_class = Column(String)
 
     def __init__(
         self, eprint: str, archive_prefix: Optional[str], primary_class: Optional[str]
@@ -81,7 +96,7 @@ class Eprint:
                 dict_[key] = value
         return dict_
 
-    @property
+    @hybrid_property
     def eprint(self) -> str:
         """eprint field
         eg. 'hep-ph/9609357' (old style)
@@ -93,7 +108,7 @@ class Eprint:
     def eprint(self, value: str):
         self.__eprint = validate_eprint(value)
 
-    @property
+    @hybrid_property
     def archive_prefix(self) -> Optional[str]:
         """necessary for new style arXiv identifiers
         eg. 'arXiv'
@@ -104,7 +119,7 @@ class Eprint:
     def archive_prefix(self, value: Optional[str]):
         self.__archive_prefix = validate_archive_prefix(self.__eprint, value)
 
-    @property
+    @hybrid_property
     def primary_class(self) -> Optional[str]:
         """necessary for new style arXiv identifiers
         eg. 'physics.flu-dyn'

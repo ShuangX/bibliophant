@@ -12,6 +12,11 @@ __all__ = []
 
 from typing import List, Optional
 
+from sqlalchemy.sql.schema import Column, ForeignKey
+from sqlalchemy.types import Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+
 from .record import Record
 from .author import Author
 from .publisher import Publisher
@@ -50,7 +55,14 @@ def validate_series(series: Optional[str]) -> Optional[str]:
 class Book(Record):
     """class for a bibliographic record of type book"""
 
-    __slots__ = ("__publisher", "__volume", "__edition", "__series")
+    __mapper_args__ = {"polymorphic_identity": "book"}
+
+    publisher_id = Column(Integer, ForeignKey("publisher.id"))
+    __publisher = relationship("Publisher", back_populates="books")
+
+    __volume = Column(String)
+    __edition = Column(String)
+    __series = Column(String)
 
     # pylint: disable=dangerous-default-value, too-many-arguments, too-many-locals
     def __init__(

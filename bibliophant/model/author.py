@@ -7,6 +7,13 @@ __all__ = []
 import re
 from typing import Optional
 
+from sqlalchemy.sql.schema import Column, Table, ForeignKey
+from sqlalchemy.types import Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from .base import ModelBase
+
 
 REGEX_PATTERNS = {"email": re.compile(r"^[^@]+@[^@]+\.[^@]+$")}
 
@@ -36,12 +43,30 @@ def validate_email(email: Optional[str]) -> Optional[str]:
     return email
 
 
-class Author:
+author_association_table = Table(
+    "author_association",
+    ModelBase.metadata,
+    Column("author_id", Integer, ForeignKey("author.id")),
+    Column("record_id", Integer, ForeignKey("record.id")),
+)
+
+
+class Author(ModelBase):
     """class for an author with last name
     and optionally first name and email address
     """
 
-    __slots__ = ("__last", "__first", "__email")
+    __tablename__ = "author"
+
+    id = Column(Integer, primary_key=True)
+
+    __last = Column(String, nullable=False)
+    __first = Column(String)
+    __email = Column(String)
+
+    records = relationship(
+        "Record", secondary=author_association_table, back_populates="__authors"
+    )
 
     def __init__(
         self, last: str, first: Optional[str] = None, email: Optional[str] = None
@@ -70,7 +95,7 @@ class Author:
                 dict_[key] = value
         return dict_
 
-    @property
+    @hybrid_property
     def last(self) -> str:
         """the last name of the author"""
         return self.__last
@@ -79,7 +104,7 @@ class Author:
     def last(self, value: str):
         self.__last = validate_last(value)
 
-    @property
+    @hybrid_property
     def first(self) -> Optional[str]:
         """the first name of the author"""
         return self.__first
@@ -88,7 +113,7 @@ class Author:
     def first(self, value: Optional[str]):
         self.__first = validate_first(value)
 
-    @property
+    @hybrid_property
     def email(self) -> Optional[str]:
         """the email address of the author"""
         return self.__email

@@ -7,6 +7,13 @@ __all__ = []
 import re
 from typing import Optional
 
+from sqlalchemy.sql.schema import Column, Table, ForeignKey
+from sqlalchemy.types import Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from .base import ModelBase
+
 
 REGEX_PATTERNS = {"color": re.compile("""^[0-9A-F]{6}$""")}
 
@@ -27,10 +34,27 @@ def validate_color(color: Optional[str]) -> Optional[str]:
     return color
 
 
-class Tag:
+tag_association_table = Table(
+    "tag_association",
+    ModelBase.metadata,
+    Column("tag_id", Integer, ForeignKey("tag.id")),
+    Column("record_id", Integer, ForeignKey("record.id")),
+)
+
+
+class Tag(ModelBase):
     """class for a tag (with optional color code)"""
 
-    __slots__ = ("__name", "__color")
+    __tablename__ = "tag"
+
+    id = Column(Integer, primary_key=True)
+
+    __name = Column(String, nullable=False)
+    __color = Column(String)
+
+    records = relationship(
+        "Record", secondary=tag_association_table, back_populates="__tags"
+    )
 
     def __init__(self, name: str, color: Optional[str] = None):
         self.__name = validate_name(name)
@@ -50,7 +74,7 @@ class Tag:
                 dict_[key] = value
         return dict_
 
-    @property
+    @hybrid_property
     def name(self) -> str:
         """the name of tag"""
         return self.__name
@@ -59,7 +83,7 @@ class Tag:
     def name(self, value: str):
         self.__name = validate_name(value)
 
-    @property
+    @hybrid_property
     def color(self) -> Optional[str]:
         """the color code of the tag (capitalized hex code)"""
         return self.__color

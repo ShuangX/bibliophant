@@ -8,6 +8,13 @@ __all__ = []
 
 from typing import Optional
 
+from sqlalchemy.sql.schema import Column
+from sqlalchemy.types import Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from .base import ModelBase
+
 
 def validate_name(name: str) -> str:
     """validate the name field"""
@@ -23,10 +30,17 @@ def validate_address(address: Optional[str]) -> Optional[str]:
     return address
 
 
-class Publisher:
+class Publisher(ModelBase):
     """class for storing information about a book's publisher"""
 
-    __slots__ = ("__name", "__address")
+    __tablename__ = "publisher"
+
+    id = Column(Integer, primary_key=True)
+
+    books = relationship("Book", back_populates="__publisher")
+
+    __name = Column(String, nullable=False)
+    __address = Column(String)
 
     def __init__(self, name: str, address: Optional[str]):
         self.__name = validate_name(name)
@@ -48,7 +62,7 @@ class Publisher:
                 dict_[key] = value
         return dict_
 
-    @property
+    @hybrid_property
     def name(self) -> str:
         """name of the publisher"""
         return self.__name
@@ -57,7 +71,7 @@ class Publisher:
     def name(self, value: str):
         self.__name = validate_name(value)
 
-    @property
+    @hybrid_property
     def address(self) -> Optional[str]:
         """address of the publisher (usually only city)"""
         return self.__address

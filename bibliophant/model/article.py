@@ -10,6 +10,11 @@ __all__ = []
 
 from typing import List, Optional
 
+from sqlalchemy.sql.schema import Column, ForeignKey
+from sqlalchemy.types import Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+
 from .record import Record
 from .author import Author
 from .url import Url
@@ -62,14 +67,15 @@ def validate_abstract(abstract: Optional[str]) -> Optional[str]:
 class Article(Record):
     """class for a bibliographic record of type article"""
 
-    __slots__ = (
-        "__journal",
-        "__volume",
-        "__number",
-        "__pages",
-        "__eprint",
-        "__abstract",
-    )
+    __mapper_args__ = {"polymorphic_identity": "article"}
+
+    __journal = Column(String, nullable=False)
+    __volume = Column(String)
+    __number = Column(String)
+    __pages = Column(String)
+    eprint_id = Column(Integer, ForeignKey("eprint.id"))
+    __eprint = relationship("Eprint", back_populates="article")
+    __abstract = Column(String)
 
     # pylint: disable=dangerous-default-value, too-many-arguments, too-many-locals
     def __init__(
@@ -146,7 +152,7 @@ class Article(Record):
                     dict_[key] = value
         return dict_
 
-    @property
+    @hybrid_property
     def journal(self) -> str:
         """the journal or magazine the work was published in"""
         return self.__journal
@@ -155,7 +161,7 @@ class Article(Record):
     def journal(self, value: str):
         self.__journal = validate_journal(value)
 
-    @property
+    @hybrid_property
     def volume(self) -> Optional[str]:
         """the volume of the journal"""
         return self.__volume
@@ -164,7 +170,7 @@ class Article(Record):
     def volume(self, value: Optional[str]):
         self.__volume = validate_volume(value)
 
-    @property
+    @hybrid_property
     def number(self) -> Optional[str]:
         """the '(issue) number' of a journal
         (this is not the 'article number'
@@ -176,7 +182,7 @@ class Article(Record):
     def number(self, value: Optional[str]):
         self.__number = validate_number(value)
 
-    @property
+    @hybrid_property
     def pages(self) -> Optional[str]:
         """page numbers
         separated either by commas or double-hyphens
@@ -187,7 +193,7 @@ class Article(Record):
     def pages(self, value: Optional[str]):
         self.__pages = validate_pages(value)
 
-    @property
+    @hybrid_property
     def eprint(self) -> Optional[Eprint]:
         """reference to an (arXiv) eprint"""
         return self.__eprint
@@ -198,7 +204,7 @@ class Article(Record):
             raise ValueError("eprint must be of type Eprint")
         self.__eprint = value
 
-    @property
+    @hybrid_property
     def abstract(self) -> Optional[str]:
         """the abstract of the article"""
         return self.__abstract

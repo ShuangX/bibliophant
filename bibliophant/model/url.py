@@ -7,6 +7,13 @@ __all__ = []
 import re
 from typing import Optional
 
+from sqlalchemy.sql.schema import Column, ForeignKey
+from sqlalchemy.types import Integer, String
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
+
+from .base import ModelBase
+
 
 REGEX_PATTERNS = {
     "uri": re.compile(r"^\w+:(\/?\/?)[^\s]+$"),
@@ -36,10 +43,18 @@ def validate_description(description: Optional[str]) -> Optional[str]:
     return description
 
 
-class Url:
+class Url(ModelBase):
     """class for a URL and an optional description of the hyperlink"""
 
-    __slots__ = ("__url", "__description")
+    __tablename__ = "url"
+
+    id = Column(Integer, primary_key=True)
+
+    record_id = Column(Integer, ForeignKey("record.id"))
+    record = relationship("Record", back_populates="__urls")
+
+    __url = Column(String, nullable=False)
+    __description = Column(String)
 
     def __init__(self, url: str, description: Optional[str] = None):
         self.__url = validate_url(url)
@@ -59,7 +74,7 @@ class Url:
                 dict_[key] = value
         return dict_
 
-    @property
+    @hybrid_property
     def url(self) -> str:
         """the hyperlink"""
         return self.__url
@@ -68,7 +83,7 @@ class Url:
     def url(self, value: str):
         self.__url = validate_url(value)
 
-    @property
+    @hybrid_property
     def description(self) -> Optional[str]:
         """short description of the URL"""
         return self.__description
