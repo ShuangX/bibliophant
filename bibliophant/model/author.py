@@ -60,35 +60,31 @@ class Author(ModelBase):
 
     id = Column(Integer, primary_key=True)
 
-    __last = Column(String, nullable=False)
-    __first = Column(String)
-    __email = Column(String)
+    _last = Column(String, nullable=False)
+    _first = Column(String)
+    _email = Column(String)
 
     records = relationship(
-        "Record", secondary=author_association_table, back_populates="__authors"
+        "Record", secondary=author_association_table, back_populates="_authors"
     )
 
     def __init__(
         self, last: str, first: Optional[str] = None, email: Optional[str] = None
     ):
-        self.__last = validate_last(last)
-        self.__first = validate_first(first)
-        self.__email = validate_email(email)
+        self._last = validate_last(last)
+        self._first = validate_first(first)
+        self._email = validate_email(email)
 
     def __str__(self):
         if self.first:
-            return self.__first + " " + self.last
-        return self.__last
+            return self._first + " " + self._last
+        return self._last
 
     def to_dict(self):
         """export all properties which are not None as a dict
         (for JSON serialization)
         """
-        fields = [
-            ("last", self.__last),
-            ("first", self.__first),
-            ("email", self.__email),
-        ]
+        fields = [("last", self._last), ("first", self._first), ("email", self._email)]
         dict_ = {}
         for key, value in fields:
             if value:
@@ -98,26 +94,26 @@ class Author(ModelBase):
     @hybrid_property
     def last(self) -> str:
         """the last name of the author"""
-        return self.__last
+        return self._last
 
     @last.setter
     def last(self, value: str):
-        self.__last = validate_last(value)
+        self._last = validate_last(value)
 
     @hybrid_property
     def first(self) -> Optional[str]:
         """the first name of the author"""
-        return self.__first
+        return self._first
 
     @first.setter
     def first(self, value: Optional[str]):
-        self.__first = validate_first(value)
+        self._first = validate_first(value)
 
     @hybrid_property
     def email(self) -> Optional[str]:
         """the email address of the author"""
-        return self.__email
+        return self._email
 
     @email.setter
     def email(self, value: Optional[str]):
-        self.__email = validate_email(value)
+        self._email = validate_email(value)

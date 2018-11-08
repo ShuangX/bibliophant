@@ -58,11 +58,11 @@ class Book(Record):
     __mapper_args__ = {"polymorphic_identity": "book"}
 
     publisher_id = Column(Integer, ForeignKey("publisher.id"))
-    __publisher = relationship("Publisher", back_populates="books")
+    _publisher = relationship("Publisher", back_populates="books")
 
-    __volume = Column(String)
-    __edition = Column(String)
-    __series = Column(String)
+    _volume = Column(String)
+    _edition = Column(String)
+    _series = Column(String)
 
     # pylint: disable=dangerous-default-value, too-many-arguments, too-many-locals
     def __init__(
@@ -94,10 +94,10 @@ class Book(Record):
             tags=tags,
             open_access=open_access,
         )
-        self.__publisher = validate_publisher(publisher)
-        self.__volume = validate_volume(volume)
-        self.__edition = validate_edition(edition)
-        self.__series = validate_series(series)
+        self._publisher = validate_publisher(publisher)
+        self._volume = validate_volume(volume)
+        self._edition = validate_edition(edition)
+        self._series = validate_series(series)
 
     def to_dict(self):
         """export all properties which are not None as a dict
@@ -136,35 +136,35 @@ class Book(Record):
     @property
     def publisher(self) -> Publisher:
         """the journal or magazine the work was published in"""
-        return self.__publisher
+        return self._publisher
 
     @publisher.setter
     def publisher(self, value: Publisher):
-        self.__publisher = validate_publisher(value)
+        self._publisher = validate_publisher(value)
 
     @property
     def volume(self) -> Optional[str]:
         """the volume of a multi-volume book"""
-        return self.__volume
+        return self._volume
 
     @volume.setter
     def volume(self, value: Optional[str]):
-        self.__volume = validate_volume(value)
+        self._volume = validate_volume(value)
 
     @property
     def edition(self) -> Optional[str]:
         """the edition of a book ("First" or "Second")"""
-        return self.__edition
+        return self._edition
 
     @edition.setter
     def edition(self, value: Optional[str]):
-        self.__edition = validate_edition(value)
+        self._edition = validate_edition(value)
 
     @property
     def series(self) -> Optional[str]:
         """the name of the book series"""
-        return self.__series
+        return self._series
 
     @series.setter
     def series(self, value: Optional[str]):
-        self.__series = validate_series(value)
+        self._series = validate_series(value)

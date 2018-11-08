@@ -51,17 +51,17 @@ class Url(ModelBase):
     id = Column(Integer, primary_key=True)
 
     record_id = Column(Integer, ForeignKey("record.id"))
-    record = relationship("Record", back_populates="__urls")
+    record = relationship("Record", back_populates="_urls")
 
-    __url = Column(String, nullable=False)
-    __description = Column(String)
+    _url = Column(String, nullable=False)
+    _description = Column(String)
 
     def __init__(self, url: str, description: Optional[str] = None):
-        self.__url = validate_url(url)
-        self.__description = validate_description(description)
+        self._url = validate_url(url)
+        self._description = validate_description(description)
 
     def __str__(self):
-        return self.__url
+        return self._url
 
     def to_dict(self):
         """export all properties which are not None as a dict
@@ -77,17 +77,17 @@ class Url(ModelBase):
     @hybrid_property
     def url(self) -> str:
         """the hyperlink"""
-        return self.__url
+        return self._url
 
     @url.setter
     def url(self, value: str):
-        self.__url = validate_url(value)
+        self._url = validate_url(value)
 
     @hybrid_property
     def description(self) -> Optional[str]:
         """short description of the URL"""
-        return self.__description
+        return self._description
 
     @description.setter
     def description(self, value: Optional[str]):
-        self.__description = validate_description(value)
+        self._description = validate_description(value)

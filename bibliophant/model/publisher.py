@@ -37,25 +37,25 @@ class Publisher(ModelBase):
 
     id = Column(Integer, primary_key=True)
 
-    books = relationship("Book", back_populates="__publisher")
+    books = relationship("Book", back_populates="_publisher")
 
-    __name = Column(String, nullable=False)
-    __address = Column(String)
+    _name = Column(String, nullable=False)
+    _address = Column(String)
 
     def __init__(self, name: str, address: Optional[str]):
-        self.__name = validate_name(name)
-        self.__address = validate_address(address)
+        self._name = validate_name(name)
+        self._address = validate_address(address)
 
     def __str__(self):
-        if self.__address:
-            return self.__name + ", " + self.__address
-        return self.__name
+        if self._address:
+            return self._name + ", " + self._address
+        return self._name
 
     def to_dict(self):
         """export all properties which are not None as a dict
         (for JSON serialization)
         """
-        fields = [("name", self.__name), ("address", self.__address)]
+        fields = [("name", self._name), ("address", self._address)]
         dict_ = {}
         for key, value in fields:
             if value:
@@ -65,17 +65,17 @@ class Publisher(ModelBase):
     @hybrid_property
     def name(self) -> str:
         """name of the publisher"""
-        return self.__name
+        return self._name
 
     @name.setter
     def name(self, value: str):
-        self.__name = validate_name(value)
+        self._name = validate_name(value)
 
     @hybrid_property
     def address(self) -> Optional[str]:
         """address of the publisher (usually only city)"""
-        return self.__address
+        return self._address
 
     @address.setter
     def address(self, value: Optional[str]):
-        self.__address = validate_address(value)
+        self._address = validate_address(value)

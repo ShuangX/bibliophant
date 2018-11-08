@@ -65,30 +65,30 @@ class Eprint(ModelBase):
 
     id = Column(Integer, primary_key=True)
 
-    article = relationship("Article", back_populates="__eprint", uselist=False)
+    article = relationship("Article", back_populates="_eprint", uselist=False)
 
-    __eprint = Column(String, nullable=False)
-    __archive_prefix = Column(String)
-    __primary_class = Column(String)
+    _eprint = Column(String, nullable=False)
+    _archive_prefix = Column(String)
+    _primary_class = Column(String)
 
     def __init__(
         self, eprint: str, archive_prefix: Optional[str], primary_class: Optional[str]
     ):
-        self.__eprint = validate_eprint(eprint)
-        self.__archive_prefix = validate_archive_prefix(eprint, archive_prefix)
-        self.__primary_class = validate_primary_class(eprint, primary_class)
+        self._eprint = validate_eprint(eprint)
+        self._archive_prefix = validate_archive_prefix(eprint, archive_prefix)
+        self._primary_class = validate_primary_class(eprint, primary_class)
 
     def __str__(self):
-        return self.__eprint
+        return self._eprint
 
     def to_dict(self):
         """export all properties which are not None as a dict
         (for JSON serialization)
         """
         fields = [
-            ("eprint", self.__eprint),
-            ("archive_prefix", self.__archive_prefix),
-            ("primary_class", self.__primary_class),
+            ("eprint", self._eprint),
+            ("archive_prefix", self._archive_prefix),
+            ("primary_class", self._primary_class),
         ]
         dict_ = {}
         for key, value in fields:
@@ -102,30 +102,30 @@ class Eprint(ModelBase):
         eg. 'hep-ph/9609357' (old style)
         or '0707.3168' (new style)
         """
-        return self.__eprint
+        return self._eprint
 
     @eprint.setter
     def eprint(self, value: str):
-        self.__eprint = validate_eprint(value)
+        self._eprint = validate_eprint(value)
 
     @hybrid_property
     def archive_prefix(self) -> Optional[str]:
         """necessary for new style arXiv identifiers
         eg. 'arXiv'
         """
-        return self.__archive_prefix
+        return self._archive_prefix
 
     @archive_prefix.setter
     def archive_prefix(self, value: Optional[str]):
-        self.__archive_prefix = validate_archive_prefix(self.__eprint, value)
+        self._archive_prefix = validate_archive_prefix(self.__eprint, value)
 
     @hybrid_property
     def primary_class(self) -> Optional[str]:
         """necessary for new style arXiv identifiers
         eg. 'physics.flu-dyn'
         """
-        return self.__primary_class
+        return self._primary_class
 
     @primary_class.setter
     def primary_class(self, value: Optional[str]):
-        self.__primary_class = validate_primary_class(self.__eprint, value)
+        self._primary_class = validate_primary_class(self.__eprint, value)

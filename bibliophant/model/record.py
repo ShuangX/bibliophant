@@ -7,7 +7,7 @@ of the class's data members.
 
 __all__ = []
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 import re
 from typing import List, Optional
 
@@ -125,20 +125,20 @@ class Record(ModelBase):
     record_type = Column(String(16), nullable=False)
     __mapper_args__ = {"polymorphic_on": record_type}
 
-    __key = Column(String, nullable=False)
-    __title = Column(String, nullable=False)
-    __year = Column(Integer, nullable=False)
-    __authors = relationship(
+    _key = Column(String, nullable=False)
+    _title = Column(String, nullable=False)
+    _year = Column(Integer, nullable=False)
+    _authors = relationship(
         "Author", secondary=author_association_table, back_populates="records"
     )
-    __doi = Column(String)
-    __month = Column(Integer)
-    __note = Column(String)
-    __urls = relationship("Url", back_populates="record")
-    __tags = relationship(
+    _doi = Column(String)
+    _month = Column(Integer)
+    _note = Column(String)
+    _urls = relationship("Url", back_populates="record")
+    _tags = relationship(
         "Tag", secondary=tag_association_table, back_populates="records"
     )
-    __open_access = Column(Boolean)
+    _open_access = Column(Boolean)
 
     # pylint: disable=dangerous-default-value, too-many-arguments
     @abstractmethod
@@ -155,16 +155,16 @@ class Record(ModelBase):
         tags: List[Tag] = [],
         open_access: Optional[bool] = None,
     ):
-        self.__key = validate_key(key)
-        self.__title = validate_title(title)
-        self.__year = validate_year(year)
-        self.__authors = validate_authors(authors)
-        self.__doi = validate_doi(doi)
-        self.__month = validate_month(month)
-        self.__note = validate_note(note)
-        self.__urls = validate_urls(urls)
-        self.__tags = validate_tags(tags)
-        self.__open_access = validate_open_access(open_access)
+        self._key = validate_key(key)
+        self._title = validate_title(title)
+        self._year = validate_year(year)
+        self._authors = validate_authors(authors)
+        self._doi = validate_doi(doi)
+        self._month = validate_month(month)
+        self._note = validate_note(note)
+        self._urls = validate_urls(urls)
+        self._tags = validate_tags(tags)
+        self._open_access = validate_open_access(open_access)
 
     def __str__(self):
         return self.__key
@@ -179,89 +179,89 @@ class Record(ModelBase):
     @hybrid_property
     def key(self) -> str:
         """unique identifier (and BibTeX key)"""
-        return self.__key
+        return self._key
 
     @key.setter
     def key(self, value: str):
-        self.__key = validate_key(value)
+        self._key = validate_key(value)
 
     @hybrid_property
     def title(self) -> str:
         """the title of the work"""
-        return self.__title
+        return self._title
 
     @title.setter
     def title(self, value: str):
-        self.__title = validate_title(value)
+        self._title = validate_title(value)
 
     @hybrid_property
     def year(self) -> int:
         """the year of publication (or, if unpublished, the year of creation)"""
-        return self.__year
+        return self._year
 
     @year.setter
     def year(self, value: int):
-        self.__year = validate_year(value)
+        self._year = validate_year(value)
 
     @hybrid_property
     def authors(self) -> List[Author]:
         """the author(s) of the work"""
-        return self.__authors
+        return self._authors
 
     @authors.setter
     def authors(self, value: List[Author]):
-        self.__authors = validate_authors(value)
+        self._authors = validate_authors(value)
 
     @hybrid_property
     def doi(self) -> Optional[str]:
         """digital object identifier"""
-        return self.__doi
+        return self._doi
 
     @doi.setter
     def doi(self, value: Optional[str]):
-        self.__doi = validate_doi(value)
+        self._doi = validate_doi(value)
 
     @hybrid_property
     def month(self) -> Optional[int]:
         """the month of publication (or, if unpublished, the year of creation)"""
-        return self.__month
+        return self._month
 
     @month.setter
     def month(self, value: Optional[int]):
-        self.__month = validate_month(value)
+        self._month = validate_month(value)
 
     @hybrid_property
     def note(self) -> Optional[str]:
         """miscellaneous extra information"""
-        return self.__note
+        return self._note
 
     @note.setter
     def note(self, value: Optional[str]):
-        self.__note = validate_note(value)
+        self._note = validate_note(value)
 
     @hybrid_property
     def urls(self) -> List[Url]:
         """URL(s) related to the work"""
-        return self.__urls
+        return self._urls
 
     @urls.setter
     def urls(self, value: List[Url]):
-        self.__urls = validate_urls(value)
+        self._urls = validate_urls(value)
 
     @hybrid_property
     def tags(self) -> List[Tag]:
         """tags / keywords related to the work"""
-        return self.__tags
+        return self._tags
 
     @tags.setter
     def tags(self, value: List[Tag]):
-        self.__tags = validate_tags(value)
+        self._tags = validate_tags(value)
 
     @hybrid_property
     def open_access(self) -> Optional[bool]:
         """marks if the work can be accessed freely"""
-        return self.__open_access
+        return self._open_access
 
     @open_access.setter
     def open_access(self, value: Optional[bool]):
-        self.__open_access = validate_open_access(value)
+        self._open_access = validate_open_access(value)

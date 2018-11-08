@@ -69,13 +69,13 @@ class Article(Record):
 
     __mapper_args__ = {"polymorphic_identity": "article"}
 
-    __journal = Column(String, nullable=False)
-    __volume = Column(String)
-    __number = Column(String)
-    __pages = Column(String)
+    _journal = Column(String, nullable=False)
+    _volume = Column(String)
+    _number = Column(String)
+    _pages = Column(String)
     eprint_id = Column(Integer, ForeignKey("eprint.id"))
-    __eprint = relationship("Eprint", back_populates="article")
-    __abstract = Column(String)
+    _eprint = relationship("Eprint", back_populates="article")
+    _abstract = Column(String)
 
     # pylint: disable=dangerous-default-value, too-many-arguments, too-many-locals
     def __init__(
@@ -109,12 +109,12 @@ class Article(Record):
             tags=tags,
             open_access=open_access,
         )
-        self.__journal = validate_journal(journal)
-        self.__volume = validate_volume(volume)
-        self.__number = validate_number(number)
-        self.__pages = validate_pages(pages)
-        self.__eprint = validate_eprint(eprint)
-        self.__abstract = validate_abstract(abstract)
+        self._journal = validate_journal(journal)
+        self._volume = validate_volume(volume)
+        self._number = validate_number(number)
+        self._pages = validate_pages(pages)
+        self._eprint = validate_eprint(eprint)
+        self._abstract = validate_abstract(abstract)
 
     def to_dict(self):
         """export all properties which are not None as a dict
@@ -155,20 +155,20 @@ class Article(Record):
     @hybrid_property
     def journal(self) -> str:
         """the journal or magazine the work was published in"""
-        return self.__journal
+        return self._journal
 
     @journal.setter
     def journal(self, value: str):
-        self.__journal = validate_journal(value)
+        self._journal = validate_journal(value)
 
     @hybrid_property
     def volume(self) -> Optional[str]:
         """the volume of the journal"""
-        return self.__volume
+        return self._volume
 
     @volume.setter
     def volume(self, value: Optional[str]):
-        self.__volume = validate_volume(value)
+        self._volume = validate_volume(value)
 
     @hybrid_property
     def number(self) -> Optional[str]:
@@ -176,39 +176,39 @@ class Article(Record):
         (this is not the 'article number'
         assigned by some journals)
         """
-        return self.__number
+        return self._number
 
     @number.setter
     def number(self, value: Optional[str]):
-        self.__number = validate_number(value)
+        self._number = validate_number(value)
 
     @hybrid_property
     def pages(self) -> Optional[str]:
         """page numbers
         separated either by commas or double-hyphens
         """
-        return self.__pages
+        return self._pages
 
     @pages.setter
     def pages(self, value: Optional[str]):
-        self.__pages = validate_pages(value)
+        self._pages = validate_pages(value)
 
     @hybrid_property
     def eprint(self) -> Optional[Eprint]:
         """reference to an (arXiv) eprint"""
-        return self.__eprint
+        return self._eprint
 
     @eprint.setter
     def eprint(self, value: Optional[Eprint]):
         if value and not isinstance(value, Eprint):
             raise ValueError("eprint must be of type Eprint")
-        self.__eprint = value
+        self._eprint = value
 
     @hybrid_property
     def abstract(self) -> Optional[str]:
         """the abstract of the article"""
-        return self.__abstract
+        return self._abstract
 
     @abstract.setter
     def abstract(self, value: Optional[str]):
-        self.__abstract = validate_abstract(value)
+        self._abstract = validate_abstract(value)

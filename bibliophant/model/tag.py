@@ -49,25 +49,25 @@ class Tag(ModelBase):
 
     id = Column(Integer, primary_key=True)
 
-    __name = Column(String, nullable=False)
-    __color = Column(String)
+    _name = Column(String, nullable=False)
+    _color = Column(String)
 
     records = relationship(
-        "Record", secondary=tag_association_table, back_populates="__tags"
+        "Record", secondary=tag_association_table, back_populates="_tags"
     )
 
     def __init__(self, name: str, color: Optional[str] = None):
-        self.__name = validate_name(name)
-        self.__color = validate_color(color)
+        self._name = validate_name(name)
+        self._color = validate_color(color)
 
     def __str__(self):
-        return self.__name
+        return self._name
 
     def to_dict(self):
         """export all properties which are not None as a dict
         (for JSON serialization)
         """
-        fields = [("name", self.__name), ("color", self.__color)]
+        fields = [("name", self._name), ("color", self._color)]
         dict_ = {}
         for key, value in fields:
             if value:
@@ -77,17 +77,17 @@ class Tag(ModelBase):
     @hybrid_property
     def name(self) -> str:
         """the name of tag"""
-        return self.__name
+        return self._name
 
     @name.setter
     def name(self, value: str):
-        self.__name = validate_name(value)
+        self._name = validate_name(value)
 
     @hybrid_property
     def color(self) -> Optional[str]:
         """the color code of the tag (capitalized hex code)"""
-        return self.__color
+        return self._color
 
     @color.setter
     def color(self, value: Optional[str]):
-        self.__color = validate_color(value)
+        self._color = validate_color(value)
