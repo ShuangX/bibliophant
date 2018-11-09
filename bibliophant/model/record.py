@@ -167,7 +167,7 @@ class Record(ModelBase):
         self._open_access = validate_open_access(open_access)
 
     def __str__(self):
-        return self.__key
+        return self._key
 
     @abstractmethod
     def to_dict(self):

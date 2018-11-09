@@ -67,7 +67,7 @@ class Url(ModelBase):
         """export all properties which are not None as a dict
         (for JSON serialization)
         """
-        fields = [("url", self.__url), ("description", self.__description)]
+        fields = [("url", self._url), ("description", self._description)]
         dict_ = {}
         for key, value in fields:
             if value:

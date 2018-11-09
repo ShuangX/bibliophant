@@ -67,6 +67,9 @@ def validate_abstract(abstract: Optional[str]) -> Optional[str]:
 class Article(Record):
     """class for a bibliographic record of type article"""
 
+    __tablename__ = "article"
+    id = Column(None, ForeignKey("record.id"), primary_key=True)
+
     __mapper_args__ = {"polymorphic_identity": "article"}
 
     _journal = Column(String, nullable=False)
@@ -88,8 +91,8 @@ class Article(Record):
         doi: Optional[str] = None,
         month: Optional[int] = None,
         note: Optional[str] = None,
-        urls: Optional[List[Url]] = [],
-        tags: Optional[List[Tag]] = [],
+        urls: List[Url] = [],
+        tags: List[Tag] = [],
         open_access: Optional[bool] = None,
         volume: Optional[str] = None,
         number: Optional[str] = None,

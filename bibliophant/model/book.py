@@ -55,6 +55,9 @@ def validate_series(series: Optional[str]) -> Optional[str]:
 class Book(Record):
     """class for a bibliographic record of type book"""
 
+    __tablename__ = "book"
+    id = Column(None, ForeignKey("record.id"), primary_key=True)
+
     __mapper_args__ = {"polymorphic_identity": "book"}
 
     publisher_id = Column(Integer, ForeignKey("publisher.id"))
@@ -75,8 +78,8 @@ class Book(Record):
         doi: Optional[str] = None,
         month: Optional[int] = None,
         note: Optional[str] = None,
-        urls: Optional[List[Url]] = [],
-        tags: Optional[List[Tag]] = [],
+        urls: List[Url] = [],
+        tags: List[Tag] = [],
         open_access: Optional[bool] = None,
         volume: Optional[str] = None,
         edition: Optional[str] = None,

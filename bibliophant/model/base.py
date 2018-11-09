@@ -3,6 +3,8 @@ It further defines a mixin class which specifies created_date and
 modified_date fields.
 """
 
+__all__ = []
+
 from contextlib import contextmanager
 
 from sqlalchemy.ext.declarative import declared_attr, declarative_base
@@ -38,7 +40,7 @@ def session_factory():
 
 
 @contextmanager
-def db_session():
+def db():
     """Provides a transactional scope around a series of operations."""
     session = session_factory()
     try:
