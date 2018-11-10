@@ -1,6 +1,5 @@
-"""This module defines a functions to recreate an Article or Book
-based on the dict that was generated from the respective .to_dict()
-method.
+"""This module contains functions for exporting records to json files
+and for recreating records from such files.
 """
 
 __all__ = []
@@ -9,8 +8,8 @@ from pathlib import Path
 import json
 from typing import Optional, Dict
 
-from .author import Author
-from .record import Record
+from .models.author import Author
+from .models.record import Record
 
 
 def record_from_dict(record_dict: Dict) -> Record:
@@ -23,31 +22,31 @@ def record_from_dict(record_dict: Dict) -> Record:
         raise ValueError("record_dict must have a key 'type'")
 
     if type_ == "article":
-        from .article import Article as RecordClass
+        from .models.article import Article as RecordClass
     elif type_ == "book":
-        from .book import Book as RecordClass
+        from .models.book import Book as RecordClass
     else:
         raise ValueError("record_dict['type'] must be 'book' or 'article'")
 
     record["authors"] = [Author(**e) for e in record["authors"]]
 
     if "eprint" in record:
-        from .eprint import Eprint
+        from .models.eprint import Eprint
 
         record["eprint"] = Eprint(**record["eprint"])
 
     if "publisher" in record:
-        from .publisher import Publisher
+        from .models.publisher import Publisher
 
         record["publisher"] = Publisher(**record["publisher"])
 
     if "urls" in record:
-        from .url import Url
+        from .models.url import Url
 
         record["urls"] = [Url(**e) for e in record["urls"]]
 
     if "tags" in record:
-        from .tag import Tag
+        from .models.tag import Tag
 
         record["tags"] = [Tag(**e) for e in record["tags"]]
 

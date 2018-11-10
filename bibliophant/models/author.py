@@ -77,7 +77,7 @@ class Author(ModelBase):
 
     def __str__(self):
         if self.first:
-            return self._first + " " + self._last
+            return self._last + ", " + self._first
         return self._last
 
     def to_dict(self):
