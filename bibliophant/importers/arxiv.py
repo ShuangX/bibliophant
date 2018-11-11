@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, Optional
 
 from .crossref import _get_item, _get_data, doi_to_record
+from ..models.article import Article
 from ..misc import format_string, key_generator
 
 
@@ -83,6 +84,8 @@ def arxiv_id_to_record(arxiv_id: str) -> Dict:
         # old style (before April 2007) id
         res["eprint"]["eprint"] = arxiv_id
 
+    res["open_access"] = True
+
     summary = _get_data(_get_item(record, "summary"))
     if summary:
         res["abstract"] = format_string(summary)
@@ -91,24 +94,24 @@ def arxiv_id_to_record(arxiv_id: str) -> Dict:
 
 
 def download_arxiv_eprint(
-    root_folder: Path, record: Dict, overwrite: Optional[bool] = False
+    article: Article, root_folder: Path, overwrite: Optional[bool] = False
 ):
-    """Downloads the latest PDF for a given arXiv ID.
-    Raises ValueError if the record has no eprint field.
+    """Downloads the latest PDF for a given article with arXiv ID.
+    Raises ValueError if the article has no eprint field.
     Raises FileNotFoundError if the record folder is not found.
     Raises FileExistsError if the PDF file already exists and overwrite is False.
     Raises RuntimeError if the file can't be downloaded.
     """
     try:
-        arxiv_id = record["eprint"]["eprint"]
+        arxiv_id = article.eprint.eprint
     except:
-        raise ValueError("the record has no eprint field that holds a arXiv id")
+        raise ValueError("the article has no eprint field that holds a arXiv id")
 
-    record_folder = root_folder / record["key"]
+    record_folder = root_folder / article.key
     if not record_folder.is_dir():
         raise FileNotFoundError(f"the record folder {record_folder} does not exist")
 
-    pdf_file = record_folder / (record["title"].replace(":", "") + ".pdf")
+    pdf_file = record_folder / (article.title.replace(":", "") + ".pdf")
 
     if pdf_file.exists() and not overwrite:
         raise FileExistsError("the PDF file already exists")
