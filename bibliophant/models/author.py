@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from .base import ModelBase
+from ..misc import format_string
 
 
 REGEX_PATTERNS = {"email": re.compile(r"^[^@]+@[^@]+\.[^@]+$")}
@@ -20,26 +21,42 @@ REGEX_PATTERNS = {"email": re.compile(r"^[^@]+@[^@]+\.[^@]+$")}
 
 def validate_last(last: str) -> str:
     """validate the field for the author's last name"""
-    if not (isinstance(last, str) and len(last) >= 2):
-        raise ValueError("last must be a str with at least 2 characters")
+    if not isinstance(last, str):
+        raise ValueError("last must be a str")
+
+    last = format_string(last)
+    if len(last) < 2:
+        raise ValueError("last must have at least 2 characters")
+
     return last
 
 
 def validate_first(first: Optional[str]) -> Optional[str]:
     """validate the field for the author's first name"""
-    if first is not None and not (isinstance(first, str) and len(first) >= 2):
-        raise ValueError("first must be a str with at least 2 characters")
+    if first is None:
+        return None
+
+    if not isinstance(first, str):
+        raise ValueError("first must be a str")
+
+    first = format_string(first)
+    if len(first) < 2:
+        raise ValueError("first must have at least 2 characters")
+
     return first
 
 
 def validate_email(email: Optional[str]) -> Optional[str]:
     """validate the field for the author's email address"""
-    if email is not None and not (
-        isinstance(email, str) and REGEX_PATTERNS["email"].search(email)
-    ):
+    if email is None:
+        return None
+
+    # TODO check for unallowed chars in email, use format_string?
+    if not (isinstance(email, str) and REGEX_PATTERNS["email"].search(email)):
         raise ValueError(
             "email must be a str that matches " + REGEX_PATTERNS["email"].pattern
         )
+
     return email
 
 
@@ -74,6 +91,15 @@ class Author(ModelBase):
         self._last = validate_last(last)
         self._first = validate_first(first)
         self._email = validate_email(email)
+
+    def __repr__(self):
+        res = 'Author("' + self._last + '"'
+        if self._first:
+            res += ', first="' + self._first + '"'
+        if self._email:
+            res += ', email="' + self._email + '"'
+        res += ")"
+        return res
 
     def __str__(self):
         if self.first:

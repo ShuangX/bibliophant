@@ -21,6 +21,8 @@ from .author import Author, author_association_table
 from .url import Url
 from .tag import Tag, tag_association_table
 
+from ..misc import format_string
+
 
 REGEX_PATTERNS = {
     "key": re.compile(r"""^[0-9]{4}[a-zA-Z]{2,}$"""),
@@ -31,15 +33,25 @@ REGEX_PATTERNS = {
 
 def validate_key(key: str) -> str:
     """validate the (BibTeX) key"""
-    if not (isinstance(key, str) and REGEX_PATTERNS["key"].search(key)):
+    if not isinstance(key, str):
+        raise ValueError("key must be a str")
+
+    key = format_string(key)
+    if not REGEX_PATTERNS["key"].search(key):
         raise ValueError("key must match " + REGEX_PATTERNS["key"].pattern)
+
     return key
 
 
 def validate_title(title: str) -> str:
     """validate the field for the title"""
-    if not (isinstance(title, str) and len(title) >= 6):
-        raise ValueError("title must be a str with at least 6 characters")
+    if not isinstance(title, str):
+        raise ValueError("title must be a str")
+
+    title = format_string(title)
+    if len(title) < 6:
+        raise ValueError("title must have at least 6 characters")
+
     return title
 
 
@@ -56,19 +68,23 @@ def validate_authors(authors: List[Author]) -> List[Author]:
         raise ValueError("authors must be a non-empty list")
     if not all(isinstance(e, Author) for e in authors):
         raise ValueError("all elements must be of type Author")
-    if len(authors) > len(set(str(authors))):
+    if len(authors) > len(set((str(a) for a in authors))):
         raise ValueError("elements must be unique")
     return authors
 
 
 def validate_doi(doi: Optional[str]) -> Optional[str]:
     """validate the digital object identifier (DOI)"""
-    if doi is not None and not (
-        isinstance(doi, str) and REGEX_PATTERNS["doi"].search(doi)
-    ):
-        raise ValueError(
-            "doi must be None or a str that matches " + REGEX_PATTERNS["doi"].pattern
-        )
+    if doi is None:
+        return None
+
+    if not isinstance(doi, str):
+        raise ValueError("doi must be a str")
+
+    doi = format_string(doi)
+    if not REGEX_PATTERNS["doi"].search(doi):
+        raise ValueError("doi must match " + REGEX_PATTERNS["doi"].pattern)
+
     return doi
 
 
@@ -81,8 +97,16 @@ def validate_month(month: Optional[int]) -> Optional[int]:
 
 def validate_note(note: Optional[str]) -> Optional[str]:
     """validate the field for extra information"""
-    if note is not None and not (isinstance(note, str) and len(note) >= 2):
-        raise ValueError("note must be None or a str with at least 2 characters")
+    if note is None:
+        return None
+
+    if not isinstance(note, str):
+        raise ValueError("note must a str")
+
+    note = format_string(note)
+    if len(note) < 2:
+        raise ValueError("note must have at least 2 characters")
+
     return note
 
 
@@ -92,7 +116,7 @@ def validate_urls(urls: List[Url]) -> List[Url]:
         raise ValueError("urls must be a list")
     if not all(isinstance(e, Url) for e in urls):
         raise ValueError("all elements must be of type Url")
-    if len(urls) > len(set(urls)):
+    if len(urls) > len(set((str(u) for u in urls))):
         raise ValueError("elements must be unique")
     return urls
 
@@ -103,7 +127,7 @@ def validate_tags(tags: List[Tag]) -> List[Tag]:
         raise ValueError("tags must be a list")
     if not all(isinstance(e, Tag) for e in tags):
         raise ValueError("all elements must be of type Tag")
-    if len(tags) > len(set(str(tags))):
+    if len(tags) > len(set((str(t) for t in tags))):
         raise ValueError("elements must be unique")
     return tags
 

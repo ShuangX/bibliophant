@@ -14,12 +14,18 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from .base import ModelBase
+from ..misc import format_string
 
 
 def validate_eprint(eprint: str) -> str:
     """validate the eprint field"""
-    if not (isinstance(eprint, str) and len(eprint) >= 9):
-        raise ValueError("eprint must be a str with at least 9 characters")
+    if not isinstance(eprint, str):
+        raise ValueError("eprint must be a str")
+
+    eprint = format_string(eprint)
+    if len(eprint) < 9:
+        raise ValueError("eprint must have at least 9 characters")
+
     return eprint
 
 
@@ -29,30 +35,40 @@ def validate_archive_prefix(
     """validate the archive_prefix field
     based on the content of the eprint field
     """
-    # old style identifiers don't require the field
-    if "/" in eprint and archive_prefix is not None:
-        raise ValueError("this field is not required for old-style identifiers")
-    # new style identifiers do require it
-    if "/" not in eprint and not (
-        isinstance(archive_prefix, str) and len(archive_prefix) >= 5
-    ):
-        raise ValueError("archive_prefix must be a str with at least 5 characters")
-    return archive_prefix
+    if "/" in eprint:  # old style identifiers don't require the field
+        if archive_prefix is None:
+            return None
+        raise ValueError("archive_prefix is not required for old-style identifiers")
+
+    else:  # new style identifiers do require it
+        if not isinstance(archive_prefix, str):
+            raise ValueError("archive_prefix must be a str")
+
+        archive_prefix = format_string(archive_prefix)
+        if len(archive_prefix) < 5:
+            raise ValueError("archive_prefix must have at least 5 characters")
+
+        return archive_prefix
 
 
 def validate_primary_class(eprint: str, primary_class: Optional[str]) -> Optional[str]:
     """validate the primary_class field
     based on the content of the eprint field
     """
-    # old style identifiers don't require the field
-    if "/" in eprint and primary_class is not None:
-        raise ValueError("this field is not required for old-style identifiers")
-    # new style identifiers do require it
-    if "/" not in eprint and not (
-        isinstance(primary_class, str) and len(primary_class) >= 5
-    ):
-        raise ValueError("primary_class must be a str with at least 5 characters")
-    return primary_class
+    if "/" in eprint:  # old style identifiers don't require the field
+        if primary_class is None:
+            return None
+        raise ValueError("primary_class is not required for old-style identifiers")
+
+    else:  # new style identifiers do require it
+        if not isinstance(primary_class, str):
+            raise ValueError("primary_class must be a str")
+
+        primary_class = format_string(primary_class)
+        if len(primary_class) < 5:
+            raise ValueError("primary_class must have at least 5 characters")
+
+        return primary_class
 
 
 class Eprint(ModelBase):
@@ -72,11 +88,23 @@ class Eprint(ModelBase):
     _primary_class = Column(String)
 
     def __init__(
-        self, eprint: str, archive_prefix: Optional[str], primary_class: Optional[str]
+        self,
+        eprint: str,
+        archive_prefix: Optional[str] = None,
+        primary_class: Optional[str] = None,
     ):
         self._eprint = validate_eprint(eprint)
         self._archive_prefix = validate_archive_prefix(eprint, archive_prefix)
         self._primary_class = validate_primary_class(eprint, primary_class)
+
+    def __repr__(self):
+        res = 'Eprint("' + self._eprint + '"'
+        if self._archive_prefix:
+            res += ', archive_prefix="' + self._archive_prefix + '"'
+        if self._primary_class:
+            res += ', primary_class="' + self._primary_class + '"'
+        res += ")"
+        return res
 
     def __str__(self):
         return self._eprint

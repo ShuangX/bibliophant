@@ -6,8 +6,8 @@ from xml.dom.minidom import parseString as parse_xml
 from pathlib import Path
 from typing import Dict, Optional
 
-from .crossref import _get_item, _get_data, _format_string, doi_to_record
-from ..misc import key_generator
+from .crossref import _get_item, _get_data, doi_to_record
+from ..misc import format_string, key_generator
 
 
 def _author_from_name(name: str) -> Dict[str, str]:
@@ -16,8 +16,8 @@ def _author_from_name(name: str) -> Dict[str, str]:
     """
     words = name.split(" ")
     author = {
-        "last": _format_string(words[-1]),
-        "first": _format_string(" ".join(words[:-1])),
+        "last": format_string(words[-1]),
+        "first": format_string(" ".join(words[:-1])),
     }
     return author
 
@@ -60,7 +60,7 @@ def arxiv_id_to_record(arxiv_id: str) -> Dict:
 
         title = _get_data(_get_item(record, "title"))
         if title:
-            res["title"] = _format_string(title)
+            res["title"] = format_string(title)
 
         if authors:
             res["authors"] = authors
@@ -85,7 +85,7 @@ def arxiv_id_to_record(arxiv_id: str) -> Dict:
 
     summary = _get_data(_get_item(record, "summary"))
     if summary:
-        res["abstract"] = _format_string(summary)
+        res["abstract"] = format_string(summary)
 
     return res
 

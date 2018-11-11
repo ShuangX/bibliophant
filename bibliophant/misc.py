@@ -1,8 +1,16 @@
-__all__ = ["key_generator", "is_key_available"]
+__all__ = ["format_string", "key_generator"]
 
 from typing import Dict, List
+from unicodedata import normalize
 
-from .models import Record
+
+def format_string(string: str) -> str:
+    """Converts a string into compatible unicode normal form (NFKC)
+    and removes all excessive whitespace.
+    """
+    string = normalize("NFKC", string)
+    string = " ".join(string.split())
+    return string
 
 
 # BibTeX keys should be ASCII
@@ -109,12 +117,3 @@ def key_generator(year: int, authors: List[Dict[str, str]]) -> str:
     for author in authors:
         key += author["last"]
     return key.replace(" ", "").translate(UNICODE_TO_ASCII)
-
-
-def is_key_available(session: "sqlalchemy.orm.session.Session", key: str) -> bool:
-    """Checks if a given key is still available,
-    i.e. no other record with this key already exists.
-    """
-    if session.query(Record).filter(Record.key == key).all():
-        return False
-    return True

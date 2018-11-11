@@ -23,6 +23,8 @@ from .publisher import Publisher
 from .url import Url
 from .tag import Tag
 
+from ..misc import format_string
+
 
 def validate_publisher(publisher: Publisher) -> Publisher:
     """validate the reference to the publisher"""
@@ -33,22 +35,46 @@ def validate_publisher(publisher: Publisher) -> Publisher:
 
 def validate_volume(volume: Optional[str]) -> Optional[str]:
     """validate the volume field (for multi-volume books)"""
-    if volume is not None and not (isinstance(volume, str) and len(volume) >= 1):
-        raise ValueError("volume must be a str with at least 1 character")
+    if volume is None:
+        return None
+
+    if not isinstance(volume, str):
+        raise ValueError("volume must be a str")
+
+    volume = format_string(volume)
+    if len(volume) == 0:
+        raise ValueError("volume must have at least 1 character")
+
     return volume
 
 
 def validate_edition(edition: Optional[str]) -> Optional[str]:
     """validate the edition field"""
-    if edition is not None and not (isinstance(edition, str) and len(edition) >= 1):
-        raise ValueError("edition must be a str with at least 1 character")
+    if edition is None:
+        return None
+
+    if not isinstance(edition, str):
+        raise ValueError("edition must be a str")
+
+    edition = format_string(edition)
+    if len(edition) == 0:
+        raise ValueError("edition must have at least 1 character")
+
     return edition
 
 
 def validate_series(series: Optional[str]) -> Optional[str]:
     """validate the series field"""
-    if series is not None and not (isinstance(series, str) and len(series) >= 3):
-        raise ValueError("series must be a str with at least 3 character")
+    if series is None:
+        return None
+
+    if not isinstance(series, str):
+        raise ValueError("series must be a str")
+
+    series = format_string(series)
+    if len(series) < 3:
+        raise ValueError("series must have at least 3 character")
+
     return series
 
 
@@ -101,6 +127,33 @@ class Book(Record):
         self._volume = validate_volume(volume)
         self._edition = validate_edition(edition)
         self._series = validate_series(series)
+
+    def __repr__(self):
+        res = 'Book("' + self.key + '"'
+        res += ', "' + self.title + '"'
+        res += ", " + str(self.year)
+        res += ", " + repr(self.authors)
+        res += ", " + repr(self.publisher)
+        if self.doi:
+            res += ', doi="' + self.doi + '"'
+        if self.month:
+            res += ", month=" + str(self.month)
+        if self.note:
+            res += ', note="' + self.doi + '"'
+        if self.urls:
+            res += ", urls=" + repr(self.urls)
+        if self.tags:
+            res += ", tags=" + repr(self.tags)
+        if self.open_access:
+            res += ", open_access=" + str(self.open_access)
+        if self.volume:
+            res += ', volume="' + self.volume + '"'
+        if self.edition:
+            res += ', edition="' + self.edition + '"'
+        if self.series:
+            res += ', series="' + self.series + '"'
+        res += ")"
+        return res
 
     def to_dict(self):
         """export all properties which are not None as a dict

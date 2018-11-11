@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from .base import ModelBase
+from ..misc import format_string
 
 
 REGEX_PATTERNS = {
@@ -23,6 +24,7 @@ REGEX_PATTERNS = {
 
 def validate_url(url: str) -> str:
     """validate the URL field"""
+    # TODO check for unallowed chars in url, use format_string?
     if not (
         isinstance(url, str)
         and REGEX_PATTERNS["uri"].search(url)
@@ -36,10 +38,16 @@ def validate_url(url: str) -> str:
 
 def validate_description(description: Optional[str]) -> Optional[str]:
     """validate the description field of the URL"""
-    if description is not None and not (
-        isinstance(description, str) and len(description) >= 3
-    ):
-        raise ValueError("description must be a str with at least 3 characters")
+    if description is None:
+        return None
+
+    if not isinstance(description, str):
+        raise ValueError("description must be a str")
+
+    description = format_string(description)
+    if len(description) < 3:
+        raise ValueError("description must have at least 3 characters")
+
     return description
 
 
@@ -59,6 +67,13 @@ class Url(ModelBase):
     def __init__(self, url: str, description: Optional[str] = None):
         self._url = validate_url(url)
         self._description = validate_description(description)
+
+    def __repr__(self):
+        res = 'Url("' + self._url + '"'
+        if self._description:
+            res += ', "' + self._description + '"'
+        res += ")"
+        return res
 
     def __str__(self):
         return self._url

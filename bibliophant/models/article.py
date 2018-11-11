@@ -119,6 +119,37 @@ class Article(Record):
         self._eprint = validate_eprint(eprint)
         self._abstract = validate_abstract(abstract)
 
+    def __repr__(self):
+        res = 'Article("' + self.key + '"'
+        res += ', "' + self.title + '"'
+        res += ", " + str(self.year)
+        res += ", " + repr(self.authors)
+        res += ', "' + self.journal + '"'
+        if self.doi:
+            res += ', doi="' + self.doi + '"'
+        if self.month:
+            res += ", month=" + str(self.month)
+        if self.note:
+            res += ', note="' + self.doi + '"'
+        if self.urls:
+            res += ", urls=" + repr(self.urls)
+        if self.tags:
+            res += ", tags=" + repr(self.tags)
+        if self.open_access:
+            res += ", open_access=" + str(self.open_access)
+        if self.volume:
+            res += ', volume="' + self.volume + '"'
+        if self.number:
+            res += ', number="' + self.number + '"'
+        if self.pages:
+            res += ', pages="' + self.pages + '"'
+        if self.eprint:
+            res += ", eprint=" + repr(self.eprint)
+        if self.abstract:
+            res += ', abstract="' + self.abstract + '"'
+        res += ")"
+        return res
+
     def to_dict(self):
         """export all properties which are not None as a dict
         (for JSON serialization)

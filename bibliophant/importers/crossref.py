@@ -10,10 +10,9 @@ __all__ = ["doi_to_record"]
 from xml.dom.minidom import parseString as parse_xml
 from urllib.parse import urlencode
 from urllib.request import urlopen, Request
-from unicodedata import normalize
 from typing import Dict
 
-from ..misc import key_generator
+from ..misc import format_string, key_generator
 
 
 def _get_item(container, name):
@@ -27,16 +26,6 @@ def _get_data(node):
     if node:
         return node.firstChild.data
     return None
-
-
-_REPLACEMENTS = {"\ufb01": "fi", "\n": " "}
-
-
-def _format_string(string: str) -> str:
-    string = normalize("NFKC", string)
-    string = " ".join(string.split())
-    string = "".join(_REPLACEMENTS[c] if c in _REPLACEMENTS else c for c in string)
-    return string
 
 
 def doi_to_record(doi: str) -> Dict:
@@ -72,9 +61,9 @@ def doi_to_record(doi: str) -> Dict:
     for node in journal_article.getElementsByTagName("person_name"):
         author = {}
         last = _get_data(_get_item(node, "surname"))
-        author["last"] = _format_string(last)
+        author["last"] = format_string(last)
         first = _get_data(_get_item(node, "given_name"))
-        author["first"] = _format_string(first)
+        author["first"] = format_string(first)
         authors.append(author)
 
     journal_issue_year = _get_data(_get_item(journal_issue, "year"))
@@ -99,7 +88,7 @@ def doi_to_record(doi: str) -> Dict:
 
     title = _get_data(_get_item(journal_article, "title"))
     if title:
-        res["title"] = _format_string(title)
+        res["title"] = format_string(title)
 
     res["authors"] = authors
     res["year"] = year
@@ -109,21 +98,21 @@ def doi_to_record(doi: str) -> Dict:
 
     if journal_metadata:
         journal = _get_data(_get_item(journal_metadata, "full_title"))
-        res["journal"] = _format_string(journal)
+        res["journal"] = format_string(journal)
         # journal_abbrev_title = _get_data(_get_item(journal_metadata, 'abbrev_title'))
 
     number = _get_data(_get_item(journal_issue, "issue"))
     if number:
-        res["number"] = _format_string(number)
+        res["number"] = format_string(number)
     volume = _get_data(_get_item(journal_issue, "volume"))
     if volume:
-        res["volume"] = _format_string(volume)
+        res["volume"] = format_string(volume)
 
     first_page = _get_data(_get_item(journal_article, "first_page"))
     last_page = _get_data(_get_item(journal_article, "last_page"))
     if first_page and last_page:
-        res["pages"] = _format_string(first_page + "--" + last_page)
+        res["pages"] = format_string(first_page + "--" + last_page)
     elif first_page and not last_page:
-        res["pages"] = _format_string(first_page)
+        res["pages"] = format_string(first_page)
 
     return res
