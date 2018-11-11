@@ -4,10 +4,12 @@ It is assumed that UTF8 is understood by the software that consumes the output.
 If you need any char replacement for non-UTF8 software you may adapt this from
 fxcoudert/tools/doi2bib (on GitHub).
 """
-__all__ = ["record_to_bibtex", "records_to_bibfile"]
+__all__ = ["record_to_bibtex", "records_to_bibfile", "collection_to_bibfile"]
 
-import pathlib
-from typing import Dict, List, Optional
+from pathlib import Path
+from typing import Dict, List, Iterable, Optional, Union
+
+from ..models.record import Record
 
 
 _MONTH_CODES = {
@@ -37,10 +39,11 @@ def _make_author_string(authors: List[Dict[str, str]]) -> str:
 
 
 # pylint: disable=R0912
-def record_to_bibtex(record: Dict) -> str:
+def record_to_bibtex(record: Record) -> str:
     """Returns a BibTeX record as a string.
     The function assumes that the input is valid.
     """
+    record = record.to_dict()
     bibtex = "@" + record["type"] + "{" + record["key"] + ",\n"
     bibtex += "\ttitle         = {" + record["title"] + "},\n"
     bibtex += "\tauthor        = {" + _make_author_string(record["authors"]) + "},\n"
@@ -85,7 +88,9 @@ def record_to_bibtex(record: Dict) -> str:
 
 
 def records_to_bibfile(
-    records: List[Dict], full_path: str, overwrite: Optional[bool] = False
+    records: Iterable[Record],
+    full_path: Union[Path, str],
+    overwrite: Optional[bool] = False,
 ):
     """Takes an iterable of records` and writes the BibTeX for all of them
     in a file.
@@ -94,7 +99,7 @@ def records_to_bibfile(
     Raises ValueError if the file extension is not 'bib'.
     Raises FileExistsError if the file already exists and overwrite is False.
     """
-    full_path = pathlib.Path(full_path).resolve(strict=True)
+    full_path = Path(full_path)
     if not full_path.parent.is_dir():
         raise FileNotFoundError(f"the directory {full_path.parent} does not exist")
     if full_path.suffix != ".bib":
@@ -104,3 +109,19 @@ def records_to_bibfile(
     with open(full_path, "w") as file:
         for record in records:
             file.write(record_to_bibtex(record) + "\n\n")
+
+
+def collection_to_bibfile(
+    session: "sqlalchemy.orm.session.Session",
+    full_path: Union[Path, str],
+    overwrite: Optional[bool] = False,
+):
+    """Exports the entire collection to a bibfile.
+    Refer to records_to_bibfile for further details.
+    """
+    records = session.query(Record).all()
+    records_to_bibfile(
+        records=sorted(records, key=lambda r: r.key),
+        full_path=full_path,
+        overwrite=overwrite,
+    )

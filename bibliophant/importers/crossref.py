@@ -33,7 +33,7 @@ _REPLACEMENTS = {"\ufb01": "fi", "\n": " "}
 
 
 def _format_string(string: str) -> str:
-    string = normalize("NFKD", string)
+    string = normalize("NFKC", string)
     string = " ".join(string.split())
     string = "".join(_REPLACEMENTS[c] if c in _REPLACEMENTS else c for c in string)
     return string

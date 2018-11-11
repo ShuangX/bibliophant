@@ -2,7 +2,7 @@
 and for recreating records from such files.
 """
 
-__all__ = []
+__all__ = ["record_from_dict", "load_record", "store_record"]
 
 from pathlib import Path
 import json
@@ -55,7 +55,7 @@ def record_from_dict(record_dict: Dict) -> Record:
     return record
 
 
-def load_record(root_folder: Path, key: str) -> Dict:
+def load_record(root_folder: Path, key: str) -> Record:
     """Imports an Article or a Book from the JSON file
     <root_folder>/<key>/<key>.json.
     Raises FileNotFoundError if the record file does not exist.

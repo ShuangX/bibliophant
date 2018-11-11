@@ -70,7 +70,7 @@ def start_engine(root: Path, create_db: bool = False):
 
 
 @contextmanager
-def session_scope():
+def session_scope() -> "Iterator[sqlalchemy.orm.session.Session]":
     """Provide a transactional scope around a series of operations."""
     session = _session_factory()
     try:
