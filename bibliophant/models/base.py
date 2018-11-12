@@ -9,8 +9,9 @@ for a new collection.
 
 __all__ = []
 
+from abc import ABCMeta
 
-from sqlalchemy.ext.declarative import declared_attr, declarative_base
+from sqlalchemy.ext.declarative import declared_attr, declarative_base, DeclarativeMeta
 from sqlalchemy.sql.schema import Column
 from sqlalchemy.types import DateTime
 from sqlalchemy import func
@@ -26,7 +27,11 @@ class BaseMixin:
         return Column(DateTime, default=func.now(), onupdate=func.now())
 
 
-ModelBase = declarative_base(cls=BaseMixin)
+class DeclarativeABCMeta(DeclarativeMeta, ABCMeta):
+    pass
+
+
+ModelBase = declarative_base(cls=BaseMixin, metaclass=DeclarativeABCMeta)
 
 
 def init_database(engine: "sqlalchemy.engine.Engine"):
