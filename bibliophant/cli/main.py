@@ -31,8 +31,9 @@ class Collection:
     envvar="BIBLIOPHANT_COLLECTION",
     help="Specify the path to the collection's root folder.",
 )
+@click.option("--init", is_flag=True, help="Initialize a new collection.")
 @click.pass_context
-def bib(context, root=None):
+def bib(context, init, root=None):
     """bibliophant is a tool for managing bibliographies and PDF documents"""
     if root is None:
         print(
@@ -41,13 +42,20 @@ def bib(context, root=None):
             "or use the -r / --root option."
         )
         sys.exit(-1)
+
     try:
         root = resolve_root(root)
-        start_engine(root)
+    except:
+        print("Error: the root folder was not found.")
+        sys.exit(-1)
+
+    context.obj = Collection(root)
+
+    try:
+        start_engine(root, create_db=init)
     except Exception as exception:
         print("Error: " + str(exception))
         sys.exit(-1)
-    context.obj = Collection(root)
 
 
 @bib.command()
@@ -177,23 +185,23 @@ def import_arxiv(collection, arxiv_id):
         print(exception)
         sys.exit(-1)
 
-    print("storing record ...")
-    try:
-        with session_scope() as session:
+    with session_scope() as session:
+        print("storing record ...")
+        try:
             if is_key_available(session, record.key):
                 session.add(record)
                 store_record(record, collection.root)
             else:
                 raise FileExistsError("they key is already used")
-    except Exception as exception:
-        print("Error: the record could not be stored.")
-        print(exception)
-        sys.exit(-1)
+        except Exception as exception:
+            print("Error: the record could not be stored.")
+            print(exception)
+            sys.exit(-1)
 
-    print("downloading PDF ...")
-    try:
-        arxiv.download_arxiv_eprint(record, collection.root)
-    except Exception as exception:
-        print("Error: the PDF could not be fetched and stored to disk.")
-        print(exception)
-        sys.exit(-1)
+        print("downloading PDF ...")
+        try:
+            arxiv.download_arxiv_eprint(record, collection.root)
+        except Exception as exception:
+            print("Error: the PDF could not be fetched and stored to disk.")
+            print(exception)
+            sys.exit(-1)
