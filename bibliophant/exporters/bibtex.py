@@ -9,7 +9,7 @@ __all__ = ["record_to_bibtex", "records_to_bibfile", "collection_to_bibfile"]
 from pathlib import Path
 from typing import Dict, List, Iterable, Optional, Union
 
-from ..models.record import Record
+from ..models.record import Record, Author
 
 
 _MONTH_CODES = {
@@ -28,13 +28,13 @@ _MONTH_CODES = {
 }
 
 
-def _make_author_string(authors: List[Dict[str, str]]) -> str:
+def _make_author_string(authors: List[Author]) -> str:
     author_names = []
     for author in authors:
-        if "first" in author:
-            author_names.append(author["first"] + " " + author["last"])
+        if author.first:
+            author_names.append(author.first + " " + author.last)
         else:
-            author_names.append(author["last"])
+            author_names.append(author.last)
     return " and ".join(author_names)
 
 
@@ -43,46 +43,41 @@ def record_to_bibtex(record: Record) -> str:
     """Returns a BibTeX record as a string.
     The function assumes that the input is valid.
     """
-    record = record.to_dict()
-    bibtex = "@" + record["type"] + "{" + record["key"] + ",\n"
-    bibtex += "\ttitle         = {" + record["title"] + "},\n"
-    bibtex += "\tauthor        = {" + _make_author_string(record["authors"]) + "},\n"
-    bibtex += "\tyear          = {" + str(record["year"]) + "},\n"
-    if "month" in record:
-        bibtex += "\tmonth         = {" + _MONTH_CODES[record["month"]] + "},\n"
-    if "doi" in record:
-        bibtex += "\tdoi           = {" + record["doi"] + "},\n"
-    if record["type"] == "article":
-        bibtex += "\tjournal       = {" + record["journal"] + "},\n"
-        if "volume" in record:
-            bibtex += "\tvolume        = {" + record["volume"] + "},\n"
-        if "number" in record:
-            bibtex += "\tnumber        = {" + record["number"] + "},\n"
-        if "pages" in record:
-            bibtex += "\tpages         = {" + record["pages"] + "},\n"
-        if "eprint" in record:
-            if "/" not in record["eprint"]["eprint"]:
+    bibtex = "@" + record.record_type + "{" + record.key + ",\n"
+    bibtex += "\ttitle         = {" + record.title + "},\n"
+    bibtex += "\tauthor        = {" + _make_author_string(record.authors) + "},\n"
+    bibtex += "\tyear          = {" + str(record.year) + "},\n"
+    if record.month:
+        bibtex += "\tmonth         = {" + _MONTH_CODES[record.month] + "},\n"
+    if record.doi:
+        bibtex += "\tdoi           = {" + record.doi + "},\n"
+    if record.record_type == "article":
+        bibtex += "\tjournal       = {" + record.journal + "},\n"
+        if record.volume:
+            bibtex += "\tvolume        = {" + record.volume + "},\n"
+        if record.number:
+            bibtex += "\tnumber        = {" + record.number + "},\n"
+        if record.pages:
+            bibtex += "\tpages         = {" + record.pages + "},\n"
+        if record.eprint:
+            if "/" not in record.eprint.eprint:
                 # new style id
-                bibtex += (
-                    "\tarchivePrefix = {" + record["eprint"]["archive_prefix"] + "},\n"
-                )
-                bibtex += "\teprint        = {" + record["eprint"]["eprint"] + "},\n"
-                bibtex += (
-                    "\tprimaryClass  = {" + record["eprint"]["primary_class"] + "},\n"
-                )
+                bibtex += "\tarchivePrefix = {" + record.eprint.archive_prefix + "},\n"
+                bibtex += "\teprint        = {" + record.eprint.eprint + "},\n"
+                bibtex += "\tprimaryClass  = {" + record.eprint.primary_class + "},\n"
             else:
                 # old style id (before April 2007)
-                bibtex += "\teprint        = {" + record["eprint"]["eprint"] + "},\n"
-    if record["type"] == "book":
-        bibtex += "\tpublisher     = {" + record["publisher"]["name"] + "},\n"
-        if "address" in record["publisher"]:
-            bibtex += "\taddress       = {" + record["publisher"]["address"] + "},\n"
-        if "volume" in record:
-            bibtex += "\tvolume        = {" + record["volume"] + "},\n"
-        if "edition" in record:
-            bibtex += "\tedition       = {" + record["volume"] + "},\n"
-        if "series" in record:
-            bibtex += "\tseries        = {" + record["series"] + "},\n"
+                bibtex += "\teprint        = {" + record.eprint.eprint + "},\n"
+    if record.record_type == "book":
+        bibtex += "\tpublisher     = {" + record.publisher.name + "},\n"
+        if record.publisher.address:
+            bibtex += "\taddress       = {" + record.publisher.address + "},\n"
+        if record.volume:
+            bibtex += "\tvolume        = {" + record.volume + "},\n"
+        if record.edition:
+            bibtex += "\tedition       = {" + record.edition + "},\n"
+        if record.series:
+            bibtex += "\tseries        = {" + record.series + "},\n"
     bibtex += "}"
     return bibtex
 
