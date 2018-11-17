@@ -12,7 +12,7 @@ from ..models import Record, Author
 
 from ..json_io import record_from_dict, store_record
 from ..exporters import bibtex
-from ..importers import arxiv
+from ..importers import arxiv, crossref
 from ..db_shortcuts import is_key_available
 
 
@@ -84,7 +84,7 @@ def list_authors():
 
 
 @bib.command()
-@click.argument("last_name")
+@click.argument("last_name", type=click.STRING)
 def list_records_by_last(last_name):
     """list records that have an author with given last name"""
     with session_scope() as session:
@@ -97,7 +97,7 @@ def list_records_by_last(last_name):
 
 
 @bib.command()
-@click.argument("key")
+@click.argument("key", type=click.STRING)
 def show_record(key):
     """show record's data"""
     with session_scope() as session:
@@ -112,7 +112,7 @@ def show_record(key):
 
 @bib.command()
 @click.pass_obj
-@click.argument("key")
+@click.argument("key", type=click.STRING)
 def open_record(collection, key):
     """open record (folder or PDF file)"""
     with session_scope() as session:
@@ -121,15 +121,19 @@ def open_record(collection, key):
             sys.exit(-1)
     try:
         path = collection.root / key
-        first_file = next(path.glob("*.pdf")).as_uri()
-        call(["open", first_file])
+        files = list(path.glob("*.pdf"))
+        if files:
+            first_file = next().as_uri()
+            call(["open", first_file])
+        else:
+            call(["open", path])
     except Exception as exception:
         print("Error: " + str(exception))
         sys.exit(-1)
 
 
 @bib.command()
-@click.argument("key")  # , required=False
+@click.argument("key", type=click.STRING)  # , required=False
 def record_to_bibtex(key):  # =None
     """export record with given key as BibTeX"""
     with session_scope() as session:
@@ -164,7 +168,7 @@ def collection_to_bibfile(collection, overwrite, path=None):
 
 @bib.command()
 @click.pass_obj
-@click.argument("arxiv_id")
+@click.argument("arxiv_id", type=click.STRING)
 def import_arxiv(collection, arxiv_id):
     """import a record (incl. PDF) from the arXiv"""
     try:
@@ -205,3 +209,43 @@ def import_arxiv(collection, arxiv_id):
             print("Error: the PDF could not be fetched and stored to disk.")
             print(exception)
             sys.exit(-1)
+
+
+@bib.command()
+@click.pass_obj
+@click.argument("doi", type=click.STRING)
+def import_doi(collection, doi):
+    """import a record from crossref"""
+    try:
+        record = crossref.doi_to_record(doi)
+    except Exception as exception:
+        print("Error: the bibliographic data could not be downloaded from crossref")
+        print(exception)
+        sys.exit(-1)
+
+    print("the following data was aquired:")
+    print(json.dumps(record, indent=2))
+    click.confirm("Do you want to continue with this data?", abort=True)
+
+    try:
+        record = record_from_dict(record)
+        key = record.key
+    except Exception as exception:
+        print("Error: there is something wrong with the bibliographic data")
+        print(exception)
+        sys.exit(-1)
+
+    with session_scope() as session:
+        print("storing record ...")
+        try:
+            if is_key_available(session, record.key):
+                session.add(record)
+                store_record(record, collection.root)
+            else:
+                raise FileExistsError("they key is already used")
+        except Exception as exception:
+            print("Error: the record could not be stored.")
+            print(exception)
+            sys.exit(-1)
+
+    open_record(collection, key)

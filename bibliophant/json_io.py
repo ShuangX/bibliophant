@@ -60,6 +60,8 @@ def load_record(root_folder: Path, key: str) -> Record:
     <root_folder>/<key>/<key>.json.
     Raises FileNotFoundError if the record file does not exist.
     """
+    # TODO this function probably makes no sense
+    # consider changing root argument to full path
     record_file = root_folder / key / (key + ".json")
     try:
         with record_file.open("r") as file:
