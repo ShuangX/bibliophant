@@ -28,6 +28,9 @@ def validate_name(name: str) -> str:
     if len(name) < 2:
         raise ValueError("name must have at least 2 characters")
 
+    if " " in name:
+        raise ValueError("name cannot contain whitespace characters")
+
     return name
 
 

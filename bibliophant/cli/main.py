@@ -8,8 +8,10 @@ from subprocess import call
 import click
 
 from ..session import resolve_root, start_engine, session_scope
-from ..models import Record, Author
+from .repl import Repl
 
+# imports below are for click subcommands
+from ..models import Record, Author
 from ..json_io import record_from_dict, store_record
 from ..exporters import bibtex
 from ..importers import arxiv, crossref
@@ -23,7 +25,7 @@ class Collection:
         self.root = root
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.option(
     "-r",
     "--root",
@@ -33,36 +35,47 @@ class Collection:
 )
 @click.option("--init", is_flag=True, help="Initialize a new collection.")
 @click.pass_context
-def bib(context, init, root=None):
+def bib(ctx, init, root=None):
     """bibliophant is a tool for managing bibliographies and PDF documents"""
     if root is None:
-        print(
+        click.secho(
             "Error: Please use the environment variable BIBLIOPHANT_COLLECTION "
             "to indicate your collection's root folder "
-            "or use the -r / --root option."
+            "or use the -r / --root option.",
+            err=True,
+            fg="red",
         )
         sys.exit(-1)
 
     try:
         root = resolve_root(root)
     except:
-        print("Error: the root folder was not found.")
+        click.secho("Error: the root folder was not found.", err=True, fg="red")
         sys.exit(-1)
-
-    context.obj = Collection(root)
 
     try:
         start_engine(root, create_db=init)
     except Exception as exception:
-        print("Error: " + str(exception))
+        click.secho("Error: " + str(exception), err=True, fg="red")
         sys.exit(-1)
+
+    if ctx.invoked_subcommand is None:
+        # start interactive user interface
+        repl = Repl(root)
+        repl.run()
+    else:
+        # store root and then continue with click subcommand
+        ctx.obj = Collection(root)
+
+
+# TODO functions below are drafts only
 
 
 @bib.command()
-@click.pass_context
-def show_root(context):
+@click.pass_obj
+def show_root(collection):
     """print the collection's root folder"""
-    print(context.obj.root)
+    click.echo(collection.root)
 
 
 @bib.command()
@@ -70,9 +83,9 @@ def list_records():
     """list records (key and title)"""
     with session_scope() as session:
         for record in sorted(session.query(Record).all(), key=lambda r: r.key):
-            print(record.key)
-            print(record.title)
-            print("")
+            click.echo(record.key)
+            click.echo(record.title)
+            click.echo("")
 
 
 @bib.command()
@@ -80,7 +93,7 @@ def list_authors():
     """list authors and how many records they have"""
     with session_scope() as session:
         for author in sorted(session.query(Author).all(), key=lambda a: a.last):
-            print(f"{len(author.records) :>2} {str(author)}")
+            click.echo(f"{len(author.records) :>2} {str(author)}")
 
 
 @bib.command()
@@ -89,11 +102,11 @@ def list_records_by_last(last_name):
     """list records that have an author with given last name"""
     with session_scope() as session:
         for author in session.query(Author).filter(Author.last == last_name):
-            print(author)
+            click.echo(author)
             for record in author.records:
-                print("\t" + record.key)
-                print("\t" + record.title)
-                print("")
+                click.echo("\t" + record.key)
+                click.echo("\t" + record.title)
+                click.echo("")
 
 
 @bib.command()
@@ -104,9 +117,11 @@ def show_record(key):
         results = session.query(Record).filter(Record.key == key).all()
         if len(results) == 1:
             record = results[0]
-            print(json.dumps(record.to_dict(), indent=2))
+            click.echo(json.dumps(record.to_dict(), indent=2))
         else:
-            print(f"Error: there were {len(results)} results found")
+            click.secho(
+                f"Error: there were {len(results)} results found", err=True, fg="red"
+            )
             sys.exit(-1)
 
 
@@ -117,7 +132,7 @@ def open_record(collection, key):
     """open record (folder or PDF file)"""
     with session_scope() as session:
         if is_key_available(session, key):
-            print(f"Error: the key does not exist")
+            click.secho(f"Error: the key does not exist", err=True, fg="red")
             sys.exit(-1)
     try:
         path = collection.root / key
@@ -128,7 +143,7 @@ def open_record(collection, key):
         else:
             call(["open", path])
     except Exception as exception:
-        print("Error: " + str(exception))
+        click.secho("Error: " + str(exception), err=True, fg="red")
         sys.exit(-1)
 
 
@@ -141,7 +156,7 @@ def record_to_bibtex(key):  # =None
         assert len(results) == 1
         record = results[0]
         result = bibtex.record_to_bibtex(record)
-    print(result)
+    click.echo(result)
 
 
 @bib.command()
@@ -162,7 +177,7 @@ def collection_to_bibfile(collection, overwrite, path=None):
                 session=session, full_path=path, overwrite=overwrite
             )
     except Exception as exception:
-        print("Error: " + str(exception))
+        click.secho("Error: " + str(exception), err=True, fg="red")
         sys.exit(-1)
 
 
@@ -174,23 +189,31 @@ def import_arxiv(collection, arxiv_id):
     try:
         record = arxiv.arxiv_id_to_record(arxiv_id)
     except Exception as exception:
-        print("Error: the bibliographic data could not be downloaded from the arXiv")
-        print(exception)
+        click.secho(
+            "Error: the bibliographic data could not be downloaded from the arXiv",
+            err=True,
+            fg="red",
+        )
+        click.secho(exception, err=True, fg="red")
         sys.exit(-1)
 
-    print("the following data was aquired:")
-    print(json.dumps(record, indent=2))
+    click.echo("the following data was aquired:")
+    click.echo(json.dumps(record, indent=2))
     click.confirm("Do you want to continue with this data?", abort=True)
 
     try:
         record = record_from_dict(record)
     except Exception as exception:
-        print("Error: there is something wrong with the bibliographic data")
-        print(exception)
+        click.secho(
+            "Error: there is something wrong with the bibliographic data",
+            err=True,
+            fg="red",
+        )
+        click.secho(exception, err=True, fg="red")
         sys.exit(-1)
 
     with session_scope() as session:
-        print("storing record ...")
+        click.echo("storing record ...")
         try:
             if is_key_available(session, record.key):
                 session.add(record)
@@ -198,16 +221,20 @@ def import_arxiv(collection, arxiv_id):
             else:
                 raise FileExistsError("they key is already used")
         except Exception as exception:
-            print("Error: the record could not be stored.")
-            print(exception)
+            click.secho("Error: the record could not be stored.", err=True, fg="red")
+            click.secho(exception, err=True, fg="red")
             sys.exit(-1)
 
-        print("downloading PDF ...")
+        click.echo("downloading PDF ...")
         try:
             arxiv.download_arxiv_eprint(record, collection.root)
         except Exception as exception:
-            print("Error: the PDF could not be fetched and stored to disk.")
-            print(exception)
+            click.secho(
+                "Error: the PDF could not be fetched and stored to disk.",
+                err=True,
+                fg="red",
+            )
+            click.secho(exception, err=True, fg="red")
             sys.exit(-1)
 
 
@@ -219,24 +246,32 @@ def import_doi(collection, doi):
     try:
         record = crossref.doi_to_record(doi)
     except Exception as exception:
-        print("Error: the bibliographic data could not be downloaded from crossref")
-        print(exception)
+        click.secho(
+            "Error: the bibliographic data could not be downloaded from crossref",
+            err=True,
+            fg="red",
+        )
+        click.secho(exception, err=True, fg="red")
         sys.exit(-1)
 
-    print("the following data was aquired:")
-    print(json.dumps(record, indent=2))
+    click.echo("the following data was aquired:")
+    click.echo(json.dumps(record, indent=2))
     click.confirm("Do you want to continue with this data?", abort=True)
 
     try:
         record = record_from_dict(record)
         key = record.key
     except Exception as exception:
-        print("Error: there is something wrong with the bibliographic data")
-        print(exception)
+        click.secho(
+            "Error: there is something wrong with the bibliographic data",
+            err=True,
+            fg="red",
+        )
+        click.secho(exception, err=True, fg="red")
         sys.exit(-1)
 
     with session_scope() as session:
-        print("storing record ...")
+        click.echo("storing record ...")
         try:
             if is_key_available(session, record.key):
                 session.add(record)
@@ -244,8 +279,8 @@ def import_doi(collection, doi):
             else:
                 raise FileExistsError("they key is already used")
         except Exception as exception:
-            print("Error: the record could not be stored.")
-            print(exception)
+            click.secho("Error: the record could not be stored.", err=True, fg="red")
+            click.secho(exception, err=True, fg="red")
             sys.exit(-1)
 
     open_record(collection, key)

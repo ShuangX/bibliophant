@@ -2,19 +2,6 @@
 The ORM sqlalchemy is used to link the model with a SQLite database.
 """
 
-__all__ = [
-    "ModelBase",
-    "Record",
-    "Author",
-    "Article",
-    "Eprint",
-    "Book",
-    "Publisher",
-    "Tag",
-    "Url",
-]
-
-
 from .base import ModelBase
 from .record import Record
 from .author import Author
