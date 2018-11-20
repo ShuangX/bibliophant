@@ -10,7 +10,9 @@ import click
 from ..session import resolve_root, start_engine, session_scope
 from .repl import Repl
 
-# imports below are for click subcommands
+from .commands.bib import bib as root_command
+
+# these imports are for click subcommands
 from ..models import Record, Author
 from ..json_io import record_from_dict, store_record
 from ..exporters import bibtex
@@ -61,7 +63,7 @@ def bib(ctx, init, root=None):
 
     if ctx.invoked_subcommand is None:
         # start interactive user interface
-        repl = Repl(root)
+        repl = Repl(command=root_command, root=root)
         repl.run()
     else:
         # store root and then continue with click subcommand
