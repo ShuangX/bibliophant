@@ -18,7 +18,8 @@ class CommandGroup(Command):
     Usually the (root) command of the REPL will be a CommandGroup.
     """
 
-    def __init__(self):
+    def __init__(self, name: str, parent_name: Optional[str] = None):
+        super().__init__(name, parent_name)
         self.sub_commands = {}
 
     def execute(self, arguments, session, root, result=None):
@@ -34,24 +35,36 @@ class CommandGroup(Command):
         for command, arguments in sub_queries:
             result = command.execute(arguments, session, root, result)
 
-    def add(self, command_name: str):
+    def add(self, name: str):
         """class decorator for adding a Command as a member of a CommandGroup
         This decorator is syntactic sugar for instantiating the decorated
         Command class and adding it to the group's sub_commands
-        dictionary with the key given by the argument command_name.
+        dictionary with the key given by the argument name.
         """
 
         def class_decorator(Cls):
             assert issubclass(Cls, Command)
-            self.sub_commands[command_name] = Cls()
+            self.sub_commands[name] = Cls(name=name, parent_name=self.name)
 
         return class_decorator
 
     def get_completions(self, document, complete_event):
         """TODO"""
-        pos = document.cursor_position
-        for command in self.sub_commands:
-            yield Completion(command, start_position=-pos)
+        try:
+            first_word = document.text.split(maxsplit=1)[0]
+        except IndexError:
+            first_word = None
+
+        if first_word and first_word in self.sub_commands:
+            yield from self.sub_commands[first_word].get_completions(
+                document, complete_event
+            )
+        else:
+            pos = document.cursor_position
+            for name in self.sub_commands:
+                yield Completion(name, start_position=-pos)
+            if self.name == "":  # root command
+                yield Completion("exit", start_position=-pos)
 
 
 def break_up_query(
@@ -75,14 +88,14 @@ def break_up_query(
         # split of the first word which is the command name itself
         parts = sub_query.split(maxsplit=1)
         if len(parts) == 2:
-            command_name, args = parts
+            name, args = parts
         else:
-            command_name = parts[0]
+            name = parts[0]
             args = ""
 
         # on success add the command which was found together with
         # all unprocessed arguments to the list
-        sub_queries.append((commands[command_name], args))
+        sub_queries.append((commands[name], args))
 
         # cut off the part that was just processed
         text = text[:index]
@@ -102,17 +115,17 @@ def break_up_query(
 def get_index_of_command(commands: Dict[str, Command], text: str) -> Optional[int]:
     """Returns the highest index i such that
     text[i:] is a sub-query,
-    i.e. a string that starts with a command.
+    i.e. a string that starts with a command's name.
     """
     length = len(text)
     indices = []
-    for command in commands:
-        index = text.rfind(command)
+    for name in commands:
+        index = text.rfind(name)
 
-        # if command name was found ...
+        # if command's name was found ...
         if index >= 0:
             # ... make sure it is not part of another word ...
-            index_after = index + len(command)
+            index_after = index + len(name)
             if index_after >= length or text[index_after] == " ":
                 # ... and add its starting position to the list
                 indices.append(index)

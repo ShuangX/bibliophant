@@ -2,7 +2,7 @@
 
 __all__ = ["Command"]
 
-
+from typing import Optional
 from abc import ABCMeta, abstractmethod
 from pathlib import Path
 
@@ -16,6 +16,15 @@ class Command(Completer, metaclass=ABCMeta):
     'get_completions(self, document, complete_event)' and
     'execute(self, arguments: str, session, root: Path, result=None)'.
     """
+
+    def __init__(self, name: str, parent_name: Optional[str] = None):
+        # name of the command
+        # put the empty string (""), if it is the root command of the REPL
+        self.name = name
+
+        # name of the CommandGroup this Command belongs to
+        # put None, if the command does not belong to a CommandGroup
+        self.parent_name = parent_name
 
     @abstractmethod
     def execute(self, arguments: str, session, root: Path, result=None):
