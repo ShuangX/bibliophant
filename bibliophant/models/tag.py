@@ -13,10 +13,12 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from .base import ModelBase
-from ..misc import format_string
 
 
-REGEX_PATTERNS = {"color": re.compile("""^[0-9A-F]{6}$""")}
+REGEX_PATTERNS = {
+    "name": re.compile("""^[-A-Za-z]{3,}$"""),
+    "color": re.compile("""^[0-9A-F]{6}$"""),
+}
 
 
 def validate_name(name: str) -> str:
@@ -24,12 +26,8 @@ def validate_name(name: str) -> str:
     if not isinstance(name, str):
         raise ValueError("name must be a str")
 
-    name = format_string(name)
-    if len(name) < 2:
-        raise ValueError("name must have at least 2 characters")
-
-    if " " in name:
-        raise ValueError("name cannot contain whitespace characters")
+    if not REGEX_PATTERNS["name"].search(name):
+        raise ValueError("name must match " + REGEX_PATTERNS["name"].pattern)
 
     return name
 
@@ -89,11 +87,7 @@ class Tag(ModelBase):
         (for JSON serialization)
         """
         fields = [("name", self._name), ("color", self._color)]
-        dict_ = {}
-        for key, value in fields:
-            if value:
-                dict_[key] = value
-        return dict_
+        return {key: value for key, value in fields if value}
 
     @hybrid_property
     def name(self) -> str:

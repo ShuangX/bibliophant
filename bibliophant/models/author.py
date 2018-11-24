@@ -111,11 +111,7 @@ class Author(ModelBase):
         (for JSON serialization)
         """
         fields = [("last", self._last), ("first", self._first), ("email", self._email)]
-        dict_ = {}
-        for key, value in fields:
-            if value:
-                dict_[key] = value
-        return dict_
+        return {key: value for key, value in fields if value}
 
     @hybrid_property
     def last(self) -> str:

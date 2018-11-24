@@ -83,11 +83,7 @@ class Url(ModelBase):
         (for JSON serialization)
         """
         fields = [("url", self._url), ("description", self._description)]
-        dict_ = {}
-        for key, value in fields:
-            if value:
-                dict_[key] = value
-        return dict_
+        return {key: value for key, value in fields if value}
 
     @hybrid_property
     def url(self) -> str:

@@ -77,11 +77,7 @@ class Publisher(ModelBase):
         (for JSON serialization)
         """
         fields = [("name", self._name), ("address", self._address)]
-        dict_ = {}
-        for key, value in fields:
-            if value:
-                dict_[key] = value
-        return dict_
+        return {key: value for key, value in fields if value}
 
     @hybrid_property
     def name(self) -> str:
