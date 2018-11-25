@@ -14,5 +14,5 @@ from .command_chain import CommandChain
 # definition of a command that groups other commands
 from .command_group import CommandGroup
 
-# print error message and stop the execution of a query
-from .exceptions import abort_query
+# raise this to stop the execution of a query
+from .exceptions import QueryAbortError

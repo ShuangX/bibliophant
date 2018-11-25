@@ -5,7 +5,8 @@ __all__ = ["Repl"]
 
 from pathlib import Path
 
-from prompt_toolkit import PromptSession
+from prompt_toolkit import PromptSession, print_formatted_text
+from prompt_toolkit.formatted_text import FormattedText
 
 # from prompt_toolkit.completion import DynamicCompleter
 
@@ -53,8 +54,11 @@ class Repl:
                     # If a command raised QueryAbortError it must have
                     # informed the user about the problem.
                     # The session_scope context manager will roll back the session.
-                    except QueryAbortError:
-                        pass
+                    except QueryAbortError as error:
+                        message = FormattedText(
+                            [("#d19393", "Error: "), ("", str(error))]
+                        )
+                        print_formatted_text(message)
 
         # On EOF (Ctrl-D), exit the REPL
         except EOFError:

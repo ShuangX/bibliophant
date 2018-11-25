@@ -26,7 +26,7 @@ from collections import namedtuple
 # from prompt_toolkit.completion import Completion
 
 from .command import Command
-from .exceptions import abort_query
+from .exceptions import QueryAbortError
 from .command_group import CommandGroup
 
 
@@ -79,7 +79,7 @@ class CommandChain(Command):
                 first = parts[0]
                 rest = ""
             else:
-                abort_query("empty sub-query")
+                raise QueryAbortError("empty sub-query")
             # TODO necessary? " : " vs strip
 
             # check segment against the four different cases
@@ -90,9 +90,9 @@ class CommandChain(Command):
                         segments[i] = (case.sub_commands[first], rest)
                         break
                     else:
-                        abort_query(f"'{first} {case.error_message}.")
+                        raise QueryAbortError(f"'{first} {case.error_message}.")
             else:  # no break was hit
-                abort_query(f"'{first}' is not a command.")
+                raise QueryAbortError(f"'{first}' is not a command.")
 
         # delegate execution of each segment
         for command, arguments in segments:

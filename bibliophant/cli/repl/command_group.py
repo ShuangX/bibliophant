@@ -8,7 +8,7 @@ from typing import Optional  # Dict, List, Tuple,
 from prompt_toolkit.completion import Completion
 
 from .command import Command
-from .exceptions import abort_query
+from .exceptions import QueryAbortError
 
 
 class CommandGroup(Command):
@@ -32,13 +32,13 @@ class CommandGroup(Command):
             first = parts[0]
             rest = ""
         else:
-            abort_query(f"'{self.name}' requires a sub-command.")
+            raise QueryAbortError(f"'{self.name}' requires a sub-command.")
 
         if first in self.sub_commands:
             command = self.sub_commands[first]
             return command.execute(rest, session, root, result)
         else:
-            abort_query(f"'{first}' is not a sub-command of {self.name}.")
+            raise QueryAbortError(f"'{first}' is not a sub-command of {self.name}.")
 
     def add(self, name: str):
         """class decorator for adding a Command as a member of a CommandGroup
