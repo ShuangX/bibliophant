@@ -27,10 +27,10 @@ class Repl:
         """run the REPL"""
 
         prompt_session = PromptSession(
-            completer=self.command,
+            # completer=self.command,
             # completer=DynamicCompleter(lambda: self.command),
             # complete_while_typing=True,
-            vi_mode=True,
+            vi_mode=True
         )
 
         prompt = f"{self.root.name}> "
@@ -38,16 +38,13 @@ class Repl:
         try:
             while True:
                 try:
-                    query = prompt_session.prompt(prompt).strip()
+                    query = prompt_session.prompt(prompt)
                 # On Ctrl-C, trash the current query but continue running
                 except KeyboardInterrupt:
                     continue
 
                 # If the user has typed anything, process it
-                if query:
-                    if query == "exit":
-                        raise EOFError
-
+                if query.strip():
                     try:
                         # each query has its own transactional scope
                         with session_scope() as session:

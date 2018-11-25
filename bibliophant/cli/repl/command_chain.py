@@ -23,12 +23,11 @@ __all__ = ["CommandChain"]
 from typing import Optional
 from collections import namedtuple
 
-import click
-
 # from prompt_toolkit.completion import Completion
 
 from .command import Command
-from .exceptions import QueryAbortError
+from .exceptions import abort_query
+from .command_group import CommandGroup
 
 
 Case = namedtuple("Case", "condition error_message sub_commands")
@@ -42,22 +41,22 @@ class CommandChain(Command):
 
         # four different command groups / cases
         self.cases = {
-            "closed_closed": Case(
+            "closed-closed": Case(
                 lambda i, n_segments: i == 0 and n_segments == 1,
                 "makes sense only as a solo-command",
                 {},
             ),
-            "closed_producing": Case(
+            "closed-producing": Case(
                 lambda i, n_segments: i == 0,
                 "makes sense only as the first command of a chain",
                 {},
             ),
-            "receiving_producing": Case(
+            "receiving-producing": Case(
                 lambda i, n_segments: i > 0,
                 "makes sense only as a follow-up command",
                 {},
             ),
-            "receiving_closed": Case(
+            "receiving-closed": Case(
                 lambda i, n_segments: i > 0 and i == n_segments - 1,
                 "makes sense only as a terminal follow-up command",
                 {},
@@ -76,9 +75,12 @@ class CommandChain(Command):
             parts = segment.split(maxsplit=1)
             if len(parts) == 2:
                 first, rest = parts
-            else:
+            elif len(parts) == 1:
                 first = parts[0]
-                rest = None
+                rest = ""
+            else:
+                abort_query("empty sub-query")
+            # TODO necessary? " : " vs strip
 
             # check segment against the four different cases
             for case_name, case in self.cases.items():
@@ -88,34 +90,39 @@ class CommandChain(Command):
                         segments[i] = (case.sub_commands[first], rest)
                         break
                     else:
-                        click.secho(
-                            f"Error: '{first} {case.error_message}.", err=True, fg="red"
-                        )
-                        raise QueryAbortError
+                        abort_query(f"'{first} {case.error_message}.")
             else:  # no break was hit
-                click.secho(f"Error: '{first}' is not a command.", err=True, fg="red")
-                raise QueryAbortError
+                abort_query(f"'{first}' is not a command.")
 
         # delegate execution of each segment
         for command, arguments in segments:
             result = command.execute(arguments, session, root, result)
 
     def add(self, command_name: str, case_name: str):
-        """class decorator for adding a Command as a sub-command of the 'case_name' case.
+        """Class decorator for adding a Command as a sub-command of the 'case_name' case.
         This decorator is syntactic sugar for instantiating the decorated
         Command class and adding it to the case's sub_commands
         dictionary with the key given by 'command_name'.
         """
+        assert case_name in self.cases
 
         def class_decorator(Cls):
             assert issubclass(Cls, Command)
-            assert case_name in self.cases
             self.cases[case_name].sub_commands[command_name] = Cls(
                 name=command_name, parent_name=self.name
             )
 
         return class_decorator
 
+    def add_command_group(self, command_name: str, case_name: str) -> CommandGroup:
+        """Add a command group as a sub-command of the 'case_name' case.
+        Returns the created group.
+        """
+        assert case_name in self.cases
+        command_group = CommandGroup(name=command_name, parent_name=self.name)
+        self.cases[case_name].sub_commands[command_name] = command_group
+        return command_group
+
     def get_completions(self, document, complete_event):
         """TODO"""
-        yield None
+        pass

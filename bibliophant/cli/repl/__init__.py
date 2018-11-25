@@ -8,8 +8,11 @@ from .repl import Repl
 # abstract base class defining what a command is
 from .command import Command
 
+# definition of a command that allows chaining other commands
+from .command_chain import CommandChain
+
 # definition of a command that groups other commands
 from .command_group import CommandGroup
 
-# exception which stops the execution of a query
-from .exceptions import QueryAbortError
+# print error message and stop the execution of a query
+from .exceptions import abort_query

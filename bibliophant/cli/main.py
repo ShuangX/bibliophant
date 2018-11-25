@@ -12,12 +12,12 @@ from .repl import Repl
 
 from .commands.bib import bib as root_command
 
-# these imports are for click subcommands
+# these imports are for click sub-commands
 from ..models import Record, Author
 from ..json_io import record_from_dict, store_record
 from ..exporters import bibtex
 from ..importers import arxiv, crossref
-from ..db_shortcuts import is_key_available
+from ..db_shortcuts import exists_key
 
 
 class Collection:
@@ -66,7 +66,7 @@ def bib(ctx, init, root=None):
         repl = Repl(command=root_command, root=root)
         repl.run()
     else:
-        # store root and then continue with click subcommand
+        # store root and then continue with click sub-command
         ctx.obj = Collection(root)
 
 
@@ -133,7 +133,7 @@ def show_record(key):
 def open_record(collection, key):
     """open record (folder or PDF file)"""
     with session_scope() as session:
-        if is_key_available(session, key):
+        if not exists_key(session, key):
             click.secho(f"Error: the key does not exist", err=True, fg="red")
             sys.exit(-1)
     try:
@@ -217,7 +217,7 @@ def import_arxiv(collection, arxiv_id):
     with session_scope() as session:
         click.echo("storing record ...")
         try:
-            if is_key_available(session, record.key):
+            if not exists_key(session, record.key):
                 session.add(record)
                 store_record(record, collection.root)
             else:
@@ -275,7 +275,7 @@ def import_doi(collection, doi):
     with session_scope() as session:
         click.echo("storing record ...")
         try:
-            if is_key_available(session, record.key):
+            if not exists_key(session, record.key):
                 session.add(record)
                 store_record(record, collection.root)
             else:
