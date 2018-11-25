@@ -1,8 +1,10 @@
 """This module defines a class Author.
 It further defines functions to validate the type and format
-of the class's data members."""
+of the class's data members.
+"""
 
 __all__ = []
+
 
 import re
 from typing import Optional
@@ -107,8 +109,8 @@ class Author(ModelBase):
         return self._last
 
     def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
+        """Export all properties of the model which are not None as a dict.
+        This is used for JSON serialization.
         """
         fields = [("last", self._last), ("first", self._first), ("email", self._email)]
         return {key: value for key, value in fields if value}

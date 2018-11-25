@@ -6,6 +6,7 @@ of the class's data members.
 
 __all__ = []
 
+
 from typing import Optional
 
 from sqlalchemy.sql.schema import Column
@@ -73,8 +74,8 @@ class Publisher(ModelBase):
         return self._name
 
     def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
+        """Export all properties of the model which are not None as a dict.
+        This is used for JSON serialization.
         """
         fields = [("name", self._name), ("address", self._address)]
         return {key: value for key, value in fields if value}

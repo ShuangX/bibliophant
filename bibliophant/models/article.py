@@ -8,6 +8,7 @@ of the class's data members.
 
 __all__ = []
 
+
 from typing import List, Optional
 
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -17,15 +18,16 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from .record import Record
 from .author import Author
+from .journal import Journal
 from .url import Url
 from .tag import Tag
 from .eprint import Eprint
 
 
-def validate_journal(journal: str) -> str:
+def validate_journal(journal: Journal) -> str:
     """validate the field for the journal's name"""
-    if not (isinstance(journal, str) and len(journal) >= 4):
-        raise ValueError("journal must be a str with at least 4 characters")
+    if not isinstance(journal, Journal):
+        raise ValueError("journal must be of type Journal")
     return journal
 
 
@@ -72,7 +74,8 @@ class Article(Record):
 
     __mapper_args__ = {"polymorphic_identity": "article"}
 
-    _journal = Column(String, nullable=False)
+    journal_id = Column(Integer, ForeignKey("journal.id"))
+    _journal = relationship("Journal", back_populates="articles")
     _volume = Column(String)
     _number = Column(String)
     _pages = Column(String)
@@ -124,7 +127,7 @@ class Article(Record):
         res += ', "' + self.title + '"'
         res += ", " + str(self.year)
         res += ", " + repr(self.authors)
-        res += ', "' + self.journal + '"'
+        res += ', "' + repr(self.journal) + '"'
         if self.doi:
             res += ', doi="' + self.doi + '"'
         if self.month:
@@ -151,8 +154,8 @@ class Article(Record):
         return res
 
     def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
+        """Export all properties of the model which are not None as a dict.
+        This is used for JSON serialization.
         """
         fields = [
             ("key", self.key),
@@ -172,8 +175,7 @@ class Article(Record):
             ("abstract", self.abstract),
             ("note", self.note),
         ]
-        dict_ = {}
-        dict_["type"] = "article"
+        dict_ = {"type": "article"}
         for key, value in fields:
             if value:
                 if isinstance(value, list):
@@ -187,12 +189,12 @@ class Article(Record):
         return dict_
 
     @hybrid_property
-    def journal(self) -> str:
+    def journal(self) -> Journal:
         """the journal or magazine the work was published in"""
         return self._journal
 
     @journal.setter
-    def journal(self, value: str):
+    def journal(self, value: Journal):
         self._journal = validate_journal(value)
 
     @hybrid_property

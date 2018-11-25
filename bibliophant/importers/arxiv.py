@@ -1,5 +1,7 @@
 """get bibliographic data from arxiv.org (and crossref.org)"""
+
 __all__ = ["arxiv_id_to_record", "download_arxiv_eprint"]
+
 
 from urllib.request import urlopen, Request, urlretrieve
 from xml.dom.minidom import parseString as parse_xml
@@ -70,7 +72,7 @@ def arxiv_id_to_record(arxiv_id: str) -> Dict:
             res["year"] = year
             res["month"] = month
 
-        res["journal"] = "arXiv e-print"
+        res["journal"] = {"name": "arXiv e-print"}
 
     res["eprint"] = {}
     if "/" not in arxiv_id:

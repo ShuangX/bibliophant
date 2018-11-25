@@ -1,3 +1,7 @@
+"""This module is a collection of helper functions
+which do not involve talking to the the database.
+"""
+
 __all__ = ["format_string", "key_generator"]
 
 from typing import Dict, List

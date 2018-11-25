@@ -1,8 +1,10 @@
 """This module defines a class Url.
 It further defines functions to validate the type and format
-of the class's data members."""
+of the class's data members.
+"""
 
 __all__ = []
+
 
 import re
 from typing import Optional
@@ -79,8 +81,8 @@ class Url(ModelBase):
         return self._url
 
     def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
+        """Export all properties of the model which are not None as a dict.
+        This is used for JSON serialization.
         """
         fields = [("url", self._url), ("description", self._description)]
         return {key: value for key, value in fields if value}

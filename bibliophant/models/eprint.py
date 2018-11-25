@@ -6,6 +6,7 @@ of the class's data members.
 
 __all__ = []
 
+
 from typing import Optional
 
 from sqlalchemy.sql.schema import Column
@@ -110,8 +111,8 @@ class Eprint(ModelBase):
         return self._eprint
 
     def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
+        """Export all properties of the model which are not None as a dict.
+        This is used for JSON serialization.
         """
         fields = [
             ("eprint", self._eprint),
@@ -141,7 +142,7 @@ class Eprint(ModelBase):
 
     @archive_prefix.setter
     def archive_prefix(self, value: Optional[str]):
-        self._archive_prefix = validate_archive_prefix(self.__eprint, value)
+        self._archive_prefix = validate_archive_prefix(self._eprint, value)
 
     @hybrid_property
     def primary_class(self) -> Optional[str]:
@@ -152,4 +153,4 @@ class Eprint(ModelBase):
 
     @primary_class.setter
     def primary_class(self, value: Optional[str]):
-        self._primary_class = validate_primary_class(self.__eprint, value)
+        self._primary_class = validate_primary_class(self._eprint, value)

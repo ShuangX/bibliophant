@@ -50,21 +50,38 @@ class CommandGroup(Command):
 
     def get_completions(self, document, complete_event):
         """TODO"""
-        try:
-            first_word = document.text.split(maxsplit=1)[0]
-        except IndexError:
-            first_word = None
-
-        if first_word and first_word in self.sub_commands:
-            yield from self.sub_commands[first_word].get_completions(
-                document, complete_event
-            )
+        if is_place_for_completions(document.text, self.name):
+            yield from (Completion(name) for name in self.sub_commands)
+            if self.name == "":
+                yield Completion("exit")
         else:
-            pos = document.cursor_position
-            for name in self.sub_commands:
-                yield Completion(name, start_position=-pos)
-            if self.name == "":  # root command
-                yield Completion("exit", start_position=-pos)
+            pass
+
+        # try:
+        #     first_word = document.text.split(maxsplit=1)[0]
+        # except IndexError:
+        #     first_word = None
+
+        # if first_word and first_word in self.sub_commands:
+        #     yield from self.sub_commands[first_word].get_completions(
+        #         document, complete_event
+        #     )
+        # else:
+        #     pos = document.cursor_position
+        #     for name in self.sub_commands:
+        #         yield Completion(name, start_position=-pos)
+        #     if self.name == "":  # root command
+        #         yield Completion("exit", start_position=-pos)
+
+
+def is_place_for_completions(text: str, name: str):
+    if name == "" and text == "":
+        return True
+
+    if text[-len(name) + 1 :] == name + " ":
+        return True
+
+    return False
 
 
 def break_up_query(

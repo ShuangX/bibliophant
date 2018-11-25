@@ -4,6 +4,7 @@ and for recreating records from such files.
 
 __all__ = ["record_from_dict", "load_record", "store_record"]
 
+
 from pathlib import Path
 import json
 from typing import Optional, Dict
@@ -30,6 +31,11 @@ def record_from_dict(record_dict: Dict) -> Record:
 
     record["authors"] = [Author(**e) for e in record["authors"]]
 
+    if "journal" in record:
+        from .models.journal import Journal
+
+        record["journal"] = Journal(**record["journal"])
+
     if "eprint" in record:
         from .models.eprint import Eprint
 
@@ -55,26 +61,27 @@ def record_from_dict(record_dict: Dict) -> Record:
     return record
 
 
-def load_record(root_folder: Path, key: str) -> Record:
-    """Imports an Article or a Book from the JSON file
-    <root_folder>/<key>/<key>.json.
-    Raises FileNotFoundError if the record file does not exist.
+def load_record(path: Path) -> Record:
+    """Imports an Article or a Book from a JSON file.
+    Path can either point to the record folder
+    or directly to the JSON file.
+    Raises FileNotFoundError if the JSON file does not exist.
     """
-    # TODO this function probably makes no sense
-    # consider changing root argument to full path
-    record_file = root_folder / key / (key + ".json")
+    path = Path(path)
+    if path.is_dir():
+        path = path / (path.name + ".json")
     try:
-        with record_file.open("r") as file:
+        with path.open("r") as file:
             record = json.load(file)
     except FileNotFoundError:
-        raise FileNotFoundError(f"the record file {record_file} was not found")
+        raise FileNotFoundError(f"the record file {path} was not found")
 
     return record_from_dict(record)
 
 
 def store_record(record: Record, root_folder: Path, overwrite: Optional[bool] = False):
-    """Exports a record to the JSON file
-    <root_folder>/<record.key>/<recod.key>.json.
+    """Creates record folder and exports a record to the JSON file
+    <root_folder>/<record.key>/<record.key>.json.
     Raises FileExistsError if the record already exists and overwrite is False.
     """
     record_folder = root_folder / record.key

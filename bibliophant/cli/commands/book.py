@@ -4,7 +4,8 @@ import click
 
 from bibliophant.models import Book
 
-from ..exceptions import CmdAbortError
+from .bib import bib
+from ..repl import QueryAbortError
 
 
 def cmd_book_list(session, words, results, root):
@@ -16,7 +17,7 @@ def cmd_book_list(session, words, results, root):
             err=True,
             fg="red",
         )
-        raise CmdAbortError
+        raise QueryAbortError
 
     # default options
     limit = None
@@ -27,10 +28,10 @@ def cmd_book_list(session, words, results, root):
                 limit = int(word[6:])
             except:
                 click.secho("Error: limit must be an integer", err=True, fg="red")
-                raise CmdAbortError
+                raise QueryAbortError
         else:
             click.secho(f"Error: unknown option {word}", err=True, fg="red")
-            raise CmdAbortError
+            raise QueryAbortError
 
     books = session.query(Book).order_by(Book.key.asc()).limit(limit)
 
@@ -42,6 +43,3 @@ def cmd_book_list(session, words, results, root):
     click.echo_via_pager(output)
 
     return books
-
-
-book_subcommands = {"list": cmd_book_list}

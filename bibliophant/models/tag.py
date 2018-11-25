@@ -1,8 +1,10 @@
 """This module defines a class Tag.
 It further defines functions to validate the type and format
-of the class's data members."""
+of the class's data members.
+"""
 
 __all__ = []
+
 
 import re
 from typing import Optional
@@ -83,8 +85,8 @@ class Tag(ModelBase):
         return self._name
 
     def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
+        """Export all properties of the model which are not None as a dict.
+        This is used for JSON serialization.
         """
         fields = [("name", self._name), ("color", self._color)]
         return {key: value for key, value in fields if value}

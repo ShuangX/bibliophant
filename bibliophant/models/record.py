@@ -7,6 +7,7 @@ of the class's data members.
 
 __all__ = []
 
+
 from abc import abstractmethod
 import re
 from typing import List, Optional
@@ -190,19 +191,8 @@ class Record(ModelBase):
         self._tags = validate_tags(tags)
         self._open_access = validate_open_access(open_access)
 
-    @abstractmethod
-    def __repr__(self):
-        pass
-
     def __str__(self):
         return self._key
-
-    @abstractmethod
-    def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
-        """
-        pass
 
     @hybrid_property
     def key(self) -> str:

@@ -10,6 +10,7 @@ of the class's data members.
 
 __all__ = []
 
+
 from typing import List, Optional
 
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -88,7 +89,6 @@ class Book(Record):
 
     publisher_id = Column(Integer, ForeignKey("publisher.id"))
     _publisher = relationship("Publisher", back_populates="books")
-
     _volume = Column(String)
     _edition = Column(String)
     _series = Column(String)
@@ -156,8 +156,8 @@ class Book(Record):
         return res
 
     def to_dict(self):
-        """export all properties which are not None as a dict
-        (for JSON serialization)
+        """Export all properties of the model which are not None as a dict.
+        This is used for JSON serialization.
         """
         fields = [
             ("key", self.key),
@@ -175,8 +175,7 @@ class Book(Record):
             ("urls", self.urls),
             ("note", self.note),
         ]
-        dict_ = {}
-        dict_["type"] = "book"
+        dict_ = {"type": "book"}
         for key, value in fields:
             if value:
                 if isinstance(value, list):

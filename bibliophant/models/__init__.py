@@ -6,6 +6,7 @@ from .base import ModelBase
 from .record import Record
 from .author import Author
 from .article import Article
+from .journal import Journal
 from .eprint import Eprint
 from .book import Book
 from .publisher import Publisher

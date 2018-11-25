@@ -4,10 +4,12 @@ It is assumed that UTF8 is understood by the software that consumes the output.
 If you need any char replacement for non-UTF8 software you may adapt this from
 fxcoudert/tools/doi2bib (on GitHub).
 """
+
 __all__ = ["record_to_bibtex", "records_to_bibfile", "collection_to_bibfile"]
 
+
 from pathlib import Path
-from typing import Dict, List, Iterable, Optional, Union
+from typing import List, Iterable, Optional, Union
 
 from ..models.record import Record, Author
 
@@ -52,7 +54,7 @@ def record_to_bibtex(record: Record) -> str:
     if record.doi:
         bibtex += "\tdoi           = {" + record.doi + "},\n"
     if record.record_type == "article":
-        bibtex += "\tjournal       = {" + record.journal + "},\n"
+        bibtex += "\tjournal       = {" + record.journal.name + "},\n"
         if record.volume:
             bibtex += "\tvolume        = {" + record.volume + "},\n"
         if record.number:
@@ -114,9 +116,8 @@ def collection_to_bibfile(
     """Exports the entire collection to a bibfile.
     Refer to records_to_bibfile for further details.
     """
-    records = session.query(Record).all()
     records_to_bibfile(
-        records=sorted(records, key=lambda r: r.key),
+        records=session.query(Record).order_by(Record.key.asc()),
         full_path=full_path,
         overwrite=overwrite,
     )

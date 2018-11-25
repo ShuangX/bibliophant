@@ -5,7 +5,9 @@ for more information.
 
 This code is adapted from fxcoudert/tools/doi2bib (on GitHub).
 """
+
 __all__ = ["doi_to_record"]
+
 
 from xml.dom.minidom import parseString as parse_xml
 from urllib.parse import urlencode
@@ -98,7 +100,7 @@ def doi_to_record(doi: str) -> Dict:
 
     if journal_metadata:
         journal = _get_data(_get_item(journal_metadata, "full_title"))
-        res["journal"] = format_string(journal)
+        res["journal"] = {"name": format_string(journal)}
         # journal_abbrev_title = _get_data(_get_item(journal_metadata, 'abbrev_title'))
 
     number = _get_data(_get_item(journal_issue, "issue"))
