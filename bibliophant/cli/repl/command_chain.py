@@ -6,7 +6,7 @@ Here the colon takes a similar meaning as the shell's pipe operator " | ".
 Note that the spaces to the left and right of the colon are obligatory
 to make the command work.
 
-Sub-commands are divided into four groups
+Sub-commands are divided into four groups (Case)
 according to their behaviour at either boundary:
 - left end:
     - closed: no input is accepted from a previous command
@@ -20,14 +20,18 @@ according to their behaviour at either boundary:
 __all__ = ["CommandChain"]
 
 
-from typing import Dict, List, Tuple, Optional
+from typing import Optional
+from collections import namedtuple
 
 import click
 
-from prompt_toolkit.completion import Completion
+# from prompt_toolkit.completion import Completion
 
 from .command import Command
 from .exceptions import QueryAbortError
+
+
+Case = namedtuple("Case", "condition error_message sub_commands")
 
 
 class CommandChain(Command):
@@ -36,26 +40,37 @@ class CommandChain(Command):
     def __init__(self, name: str, parent_name: Optional[str] = None):
         super().__init__(name, parent_name)
 
-        # These commands must run solo.
-        self.closed_closed_sub_commands = {}
-
-        # These commands must run first
-        # and may be followed by others.
-        self.closed_producing_sub_commands = {}
-
-        # These must run as follow-up commands.
-        self.receiving_producing_sub_commands = {}
-
-        # These must run as follow-up commands
-        # but they may not be followed by any other commands.
-        self.receiving_closed_sub_commands = {}
+        # four different command groups / cases
+        self.cases = {
+            "closed_closed": Case(
+                lambda i, n_segments: i == 0 and n_segments == 1,
+                "makes sense only as a solo-command",
+                {},
+            ),
+            "closed_producing": Case(
+                lambda i, n_segments: i == 0,
+                "makes sense only as the first command of a chain",
+                {},
+            ),
+            "receiving_producing": Case(
+                lambda i, n_segments: i > 0,
+                "makes sense only as a follow-up command",
+                {},
+            ),
+            "receiving_closed": Case(
+                lambda i, n_segments: i > 0 and i == n_segments - 1,
+                "makes sense only as a terminal follow-up command",
+                {},
+            ),
+        }
 
     def execute(self, arguments, session, root, result=None):
         """Split query into chain-segments and delegate the execution."""
 
-        chain_segments = arguments.split(" : ")
+        segments = arguments.split(" : ")
+        n_segments = len(segments)
 
-        for i, segment in enumerate(chain_segments):
+        for i, segment in enumerate(segments):
 
             # split the segment further into first word and rest
             parts = segment.split(maxsplit=1)
@@ -65,93 +80,39 @@ class CommandChain(Command):
                 first = parts[0]
                 rest = None
 
-            # check the four different cases ...
-
-            # closed - closed case
-            # These commands must run solo.
-            if first in self.closed_closed_sub_commands:
-                if i == 0 and len(chain_segments) == 1:
-                    print(f"closed - closed: {first} ({rest})")
-                    chain_segments[i] = (self.closed_closed_sub_commands[first], rest)
-                else:
-                    click.secho(
-                        f"Error: '{first} makes sense only as a solo-command.",
-                        err=True,
-                        fg="red",
-                    )
-                    raise QueryAbortError
-
-            # closed - producing case
-            # These commands must run first
-            # and may be followed by others.
-            elif first in self.closed_producing_sub_commands:
-                if i == 0:
-                    print(f"closed - producing: {first} ({rest})")
-                    chain_segments[i] = (
-                        self.closed_producing_sub_commands[first],
-                        rest,
-                    )
-                else:
-                    click.secho(
-                        f"Error: '{first}' makes sense only as the first command of a chain.",
-                        err=True,
-                        fg="red",
-                    )
-                    raise QueryAbortError
-
-            # receiving - producing case
-            # These must run as follow-up commands.
-            elif first in self.receiving_producing_sub_commands:
-                if i > 0:
-                    print(f"receiving - producing: {first} ({rest})")
-                    chain_segments[i] = (
-                        self.receiving_producing_sub_commands[first],
-                        rest,
-                    )
-                else:
-                    click.secho(
-                        f"Error: '{first}' makes sense only as a follow-up command.",
-                        err=True,
-                        fg="red",
-                    )
-                    raise QueryAbortError
-
-            ## receiving - closed case
-            # These must run as follow-up commands
-            # but they may not be followed by any other commands.
-            elif first in self.receiving_closed_sub_commands:
-                if i > 0 and i == len(chain_segments) - 1:
-                    print(f"receiving - closed: {first} ({rest})")
-                    chain_segments[i] = (
-                        self.receiving_closed_sub_commands[first],
-                        rest,
-                    )
-                else:
-                    click.secho(
-                        f"Error: '{first}' makes sense only as a terminal follow-up command.",
-                        err=True,
-                        fg="red",
-                    )
-                    raise QueryAbortError
-
-            else:
+            # check segment against the four different cases
+            for case_name, case in self.cases.items():
+                if first in case.sub_commands:
+                    if case.condition(i, n_segments):
+                        print(f"{case_name}: {first} ({rest})")
+                        segments[i] = (case.sub_commands[first], rest)
+                        break
+                    else:
+                        click.secho(
+                            f"Error: '{first} {case.error_message}.", err=True, fg="red"
+                        )
+                        raise QueryAbortError
+            else:  # no break was hit
                 click.secho(f"Error: '{first}' is not a command.", err=True, fg="red")
                 raise QueryAbortError
 
         # delegate execution of each segment
-        for command, arguments in chain_segments:
+        for command, arguments in segments:
             result = command.execute(arguments, session, root, result)
 
-    def add(self, name: str):
-        """class decorator for adding a Command as a member of a CommandGroup
+    def add(self, command_name: str, case_name: str):
+        """class decorator for adding a Command as a sub-command of the 'case_name' case.
         This decorator is syntactic sugar for instantiating the decorated
-        Command class and adding it to the group's sub_commands
-        dictionary with the key given by the argument name.
+        Command class and adding it to the case's sub_commands
+        dictionary with the key given by 'command_name'.
         """
 
         def class_decorator(Cls):
             assert issubclass(Cls, Command)
-            self.sub_commands[name] = Cls(name=name, parent_name=self.name)
+            assert case_name in self.cases
+            self.cases[case_name].sub_commands[command_name] = Cls(
+                name=command_name, parent_name=self.name
+            )
 
         return class_decorator
 
