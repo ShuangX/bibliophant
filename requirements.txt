@@ -1,0 +1,4 @@
+sqlalchemy
+click
+prompt_toolkit
+ipython

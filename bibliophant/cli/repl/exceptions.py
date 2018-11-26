@@ -1,6 +1,11 @@
 """this module defines custom exceptions and functions for error handling"""
 
-__all__ = ["QueryAbortError"]
+__all__ = ["QueryAbortError", "print_error"]
+
+from typing import Union
+
+from prompt_toolkit import print_formatted_text
+from prompt_toolkit.formatted_text import FormattedText
 
 
 class QueryAbortError(Exception):
@@ -10,3 +15,9 @@ class QueryAbortError(Exception):
     """
 
     pass
+
+
+def print_error(error: Union[Exception, str]):
+    """Turns an Exception or a str into a user-facing error message."""
+    message = FormattedText([("#d19393", "Error: "), ("", str(error))])
+    print_formatted_text(message)

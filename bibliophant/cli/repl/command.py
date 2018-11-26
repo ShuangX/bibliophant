@@ -10,12 +10,7 @@ from prompt_toolkit.completion import Completer
 
 
 class Command(Completer, metaclass=ABCMeta):
-    """abstract base class for a command
-
-    Each command must implement the abstract methods
-    'get_completions(self, document, complete_event)' and
-    'execute(self, arguments: str, session, root: Path, result=None)'.
-    """
+    """abstract base class for a command"""
 
     def __init__(self, name: str, parent_name: Optional[str] = None):
         # name of the command
@@ -34,6 +29,12 @@ class Command(Completer, metaclass=ABCMeta):
         arguments: the unprocessed arguments specified by the user
         session: sqlalchemy session
         root: path to the collection's root folder
-        result: can any result from a previously executed command (command chaining)
+        result: a result from a previously executed command (command chaining)
         """
         pass
+
+    def get_completions(self, document, complete_event):
+        """Overwrite this method to make the command yield auto-completions
+        for any of its arguments.
+        """
+        return []

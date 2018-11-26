@@ -1,19 +1,22 @@
-"""interactive user interface for bibliophant"""
+"""interactive user interface (for bibliophant)
+
+The implementation should be more or less generic.
+
+With regard to the database, every query is embedded
+into its own transactional scope (session_scope context manager).
+"""
 
 __all__ = ["Repl"]
 
 
 from pathlib import Path
 
-from prompt_toolkit import PromptSession, print_formatted_text
-from prompt_toolkit.formatted_text import FormattedText
-
-# from prompt_toolkit.completion import DynamicCompleter
+from prompt_toolkit import PromptSession
 
 from bibliophant.session import session_scope
 
 from .command import Command
-from .exceptions import QueryAbortError
+from .exceptions import QueryAbortError, print_error
 
 
 class Repl:
@@ -28,10 +31,9 @@ class Repl:
         """run the REPL"""
 
         prompt_session = PromptSession(
-            # completer=self.command,
-            # completer=DynamicCompleter(lambda: self.command),
+            completer=self.command,
             # complete_while_typing=True,
-            vi_mode=True
+            vi_mode=True,
         )
 
         prompt = f"{self.root.name}> "
@@ -55,10 +57,7 @@ class Repl:
                     # informed the user about the problem.
                     # The session_scope context manager will roll back the session.
                     except QueryAbortError as error:
-                        message = FormattedText(
-                            [("#d19393", "Error: "), ("", str(error))]
-                        )
-                        print_formatted_text(message)
+                        print_error(error)
 
         # On EOF (Ctrl-D), exit the REPL
         except EOFError:

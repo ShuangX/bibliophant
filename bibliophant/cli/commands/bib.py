@@ -1,34 +1,21 @@
 """This module defines the root command of the application."""
 
-from typing import Optional
 from pathlib import Path
 from subprocess import call
 
 from prompt_toolkit.completion import Completion
 
-from ..repl import CommandChain, CommandGroup, Command
+from ..repl import CommandChain, Command
 
 
 bib = CommandChain(name="")  # root command -> empty string
 
 
-@bib.add("help", "closed-closed")
-class Help(Command):
-    def execute(self, arguments, session, root, result=None):
-        print("Help message ...")
-
-    def get_completions(self, document, complete_event):
-        pass
-
-
 @bib.add("exit", "closed-closed")
 class Exit(Command):
     def execute(self, arguments, session, root, result=None):
-        print("Goodbye!")
+        print("Ciao!")
         raise EOFError
-
-    def get_completions(self, document, complete_event):
-        pass
 
 
 @bib.add("ipython", "closed-closed")
@@ -46,23 +33,24 @@ class IPython(Command):
             ]
         )
 
-    def get_completions(self, document, complete_event):
-        pass
-
 
 @bib.add("edit", "closed-closed")
-class IPython(Command):
+class Edit(Command):
     def execute(self, arguments, session, root, result=None):
+        # TODO
         print("better spin up the editor soon ...")
 
     def get_completions(self, document, complete_event):
-        pass
+        # TODO
+        return []
 
 
 @bib.add("add", "closed-producing")
-class IPython(Command):
+class AddRecord(Command):
     def execute(self, arguments, session, root, result=None):
+        # TODO
         print("better spin up the editor soon to add stuff ...")
 
     def get_completions(self, document, complete_event):
-        pass
+        # TODO
+        return []

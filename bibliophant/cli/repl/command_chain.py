@@ -124,5 +124,5 @@ class CommandChain(Command):
         return command_group
 
     def get_completions(self, document, complete_event):
-        """TODO"""
-        pass
+        # TODO
+        return []
