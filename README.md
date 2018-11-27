@@ -50,6 +50,6 @@ TODO
 ## Documentation
 
 If you have installed bibliophant, you can access further documentation by typing
-```bash
+```
 $ bib help
 ```

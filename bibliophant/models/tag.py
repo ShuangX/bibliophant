@@ -42,6 +42,8 @@ def validate_color(color: Optional[str]) -> Optional[str]:
     if not isinstance(color, str):
         raise ValueError("color must be a str")
 
+    color = color.upper()
+
     if not REGEX_PATTERNS["color"].search(color):
         raise ValueError("color must match " + REGEX_PATTERNS["color"].pattern)
 
