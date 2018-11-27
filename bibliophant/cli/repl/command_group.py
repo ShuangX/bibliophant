@@ -18,7 +18,7 @@ class CommandGroup(Command):
         super().__init__(name, parent_name)
         self.sub_commands = {}
 
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         """Process arguments looking for sub-commands.
         Note that 'result' can be used for chaining sub-commands.
         """
@@ -38,7 +38,7 @@ class CommandGroup(Command):
         # delegate the execution of the sub-command
         if first in self.sub_commands:
             command = self.sub_commands[first]
-            return command.execute(rest, session, root, result)
+            return command.execute(rest, session, config, result)
         else:
             raise QueryAbortError(f"'{first}' is not a sub-command of {self.name}.")
 

@@ -2,9 +2,8 @@
 
 __all__ = ["Command"]
 
-from typing import Optional
+from typing import Optional, Dict
 from abc import ABCMeta, abstractmethod
-from pathlib import Path
 
 from prompt_toolkit.completion import Completer
 
@@ -22,13 +21,13 @@ class Command(Completer, metaclass=ABCMeta):
         self.parent_name = parent_name
 
     @abstractmethod
-    def execute(self, arguments: str, session, root: Path, result=None):
+    def execute(self, arguments: str, session, config: Dict, result=None):
         """define what happens when the command executes
         Parameters:
         -----------
         arguments: the unprocessed arguments specified by the user
         session: sqlalchemy session
-        root: path to the collection's root folder
+        config: configuration dictionary
         result: a result from a previously executed command (command chaining)
         """
         pass

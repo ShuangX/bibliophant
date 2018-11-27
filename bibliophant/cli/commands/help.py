@@ -8,7 +8,7 @@ from .bib import bib
 
 @bib.add("help", "closed-closed")
 class Help(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         echo_via_pager(HELP)
 
 
@@ -254,7 +254,7 @@ of a pipeline.
 # Configuration
 
 A configuration file '~/.bibliophant' is required for the application to work.
-If the file does not exist, a "setup wizard" will be invoked automatically.
+If the file does not exist, a "configuration wizard" will be invoked automatically.
 
 The following options are required:
 - a list of collection folders
@@ -265,10 +265,11 @@ The following options are required:
 
 A configuration file (~/.bibliophant) might then look like this:
 {
-    collections: ["~/bib", "~/another_collection"],
-    pdf_reader: "open",
-    file_browser: "open",
-    delete_folder: "rmtrash",
+    "collections": ["~/my/default/collection", "~/my/other/collection"],
+    "open_pdf": "open",
+    "open_folder": "open",
+    "delete_folder": "rmtrash"
 }
 
+Note that the JSON format is very picky about commas.
 """

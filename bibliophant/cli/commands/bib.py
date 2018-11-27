@@ -13,14 +13,14 @@ bib = CommandChain(name="")  # root command -> empty string
 
 @bib.add("exit", "closed-closed")
 class Exit(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         print("Ciao!")
         raise EOFError
 
 
 @bib.add("ipython", "closed-closed")
 class IPython(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         bibliophant_path = Path(__file__).parent.parent.parent
         call(
             [
@@ -28,7 +28,7 @@ class IPython(Command):
                 "-i",
                 bibliophant_path / "start_shell.py",
                 "--",
-                root,
+                config["root"],
                 bibliophant_path.parent,
             ]
         )
@@ -36,7 +36,7 @@ class IPython(Command):
 
 @bib.add("edit", "closed-closed")
 class Edit(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         # TODO
         print("better spin up the editor soon ...")
 
@@ -47,7 +47,7 @@ class Edit(Command):
 
 @bib.add("add", "closed-producing")
 class AddRecord(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         # TODO
         print("better spin up the editor soon to add stuff ...")
 

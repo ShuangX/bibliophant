@@ -3,66 +3,105 @@
 __all__ = ["bib"]
 
 
+import argparse
+import json
 import sys
-
-import click
+from pathlib import Path
 
 from ..session import resolve_root, start_engine, session_scope
 from .repl import Repl, QueryAbortError, print_error
 from .commands import root_command
 
-# TODO remove click as a dependency?
-# can we use argparse for the stuff below?
-# how to print through a pager?
 
-
-@click.command()
-@click.option(
-    "-r",
-    "--root",
-    type=click.Path(),
-    envvar="BIBLIOPHANT_COLLECTION",
-    help="Specify the path to the collection's root folder.",
-)
-@click.option("--init", is_flag=True, help="Initialize a new collection.")
-@click.argument("arguments", nargs=-1)
-def bib(init, root=None, arguments=""):
+def bib():
     """bibliophant is a tool for managing bibliographies and PDF documents"""
 
-    if root is None:
+    # read the configuration file
+
+    config_file = Path.home() / ".bibliophant"
+
+    try:
+        with open(config_file, "r") as file:
+            config = json.load(file)
+    except FileNotFoundError:
+        # TODO configuration wizard
+        print_error(f'no configuration file found at "{config_file}"')
+        sys.exit(-1)
+    except json.decoder.JSONDecodeError:
         print_error(
-            "Please use the environment variable BIBLIOPHANT_COLLECTION "
-            "or the -r / --root option "
-            "to indicate your collection's root folder."
+            f'There seems to be a problem with configuration file "{config_file}".\n'
+            "Make sure it conforms to the JSON format. For instance, check your commas.\n"
+            "You may delete the file and let the configuration wizard recreate it."
         )
         sys.exit(-1)
 
+    # extract the specified collection root folders
+
+    try:
+        collections = config["collections"]
+        assert isinstance(collections, list)
+        assert len(collections) > 0
+    except:
+        print_error(
+            'The configuration file must contain a "collections" field.\n'
+            'Example: "collections": ["~/my/default/collection", "~/my/other/collection"]\n'
+            "This list must have at least one entry."
+        )
+        sys.exit(-1)
+
+    # convert strings to Path objects
+    collections = [Path(collection) for collection in collections]
+
+    # convert to dict with key = folder name and value = full path
+    collections_dict = {collection.name: collection for collection in collections}
+
+    # parse collection argument (-c <name>)
+
+    parser = argparse.ArgumentParser(prog="bib")
+
+    parser.add_argument(
+        "-c",
+        choices=collections_dict.keys(),
+        help=f'selects one of the collections specified in "{config_file}"',
+    )
+
+    parser.add_argument(
+        "query",
+        nargs=argparse.REMAINDER,
+        help='Run "bib help" for information on supported queries. If no query is provided, the interactive shell will start.',
+    )
+
+    args = parser.parse_args()
+
+    if args.c:
+        config["root"] = collections_dict[args.c]
+    else:
+        config["root"] = collections[0]
+
     # open the collection's root folder
     try:
-        root = resolve_root(root)
+        config["root"] = resolve_root(config["root"])
     except:
-        print_error("The root folder was not found.")
+        print_error(f"The folder \"{config['root']}\" was not found.")
         sys.exit(-1)
 
     # open database
     try:
-        start_engine(root, create_db=init)
+        start_engine(config["root"], create_db=True)
     except Exception as error:
         print_error(error)
         sys.exit(-1)
 
-    # any extra arguments are interpreted as a query
-    query = " ".join(arguments)
+    # run query if provided ; otherwise start interactive shell
+    query = " ".join(args.query)
     if query:
-        # shell-mode (execute single query)
         try:
             with session_scope() as session:
-                root_command.execute(query, session, root)
+                root_command.execute(query, session, config)
 
         except QueryAbortError as error:
             print_error(error)
 
     else:
-        # interactive user interface (REPL)
-        repl = Repl(command=root_command, root=root)
+        repl = Repl(root_command=root_command, config=config)
         repl.run()

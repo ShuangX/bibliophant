@@ -9,7 +9,7 @@ into its own transactional scope (session_scope context manager).
 __all__ = ["Repl"]
 
 
-from pathlib import Path
+from typing import Dict
 
 from prompt_toolkit import PromptSession
 
@@ -22,21 +22,21 @@ from .exceptions import QueryAbortError, print_error
 class Repl:
     """interactive user interface"""
 
-    def __init__(self, command: Command, root: Path):
-        assert isinstance(command, Command)
-        self.command = command
-        self.root = root
+    def __init__(self, root_command: Command, config: Dict):
+        assert isinstance(root_command, Command)
+        self.root_command = root_command
+        self.config = config
 
     def run(self):
         """run the REPL"""
 
         prompt_session = PromptSession(
-            completer=self.command,
+            completer=self.root_command,
             # complete_while_typing=True,
             vi_mode=True,
         )
 
-        prompt = f"{self.root.name}> "
+        prompt = f"{self.config['root'].name}> "
 
         try:
             while True:
@@ -51,7 +51,7 @@ class Repl:
                     try:
                         # each query has its own transactional scope
                         with session_scope() as session:
-                            self.command.execute(query, session, self.root)
+                            self.root_command.execute(query, session, self.config)
 
                     # If a command raised QueryAbortError it must have
                     # informed the user about the problem.

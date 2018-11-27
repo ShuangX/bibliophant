@@ -9,7 +9,7 @@ import_group = bib.add_command_group("import", "closed-producing")
 
 @import_group.add("doi")
 class ImportDoi(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         # TODO
         print("import from Crossref and spin up the editor soon ...")
 
@@ -20,7 +20,7 @@ class ImportDoi(Command):
 
 @import_group.add("arxiv")
 class ImportArXiv(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         # TODO
         print("import from the arXiv and spin up the editor soon ...")
 
@@ -31,7 +31,7 @@ class ImportArXiv(Command):
 
 @import_group.add("bib")
 class ImportBibliophantRecordFolder(Command):
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         # TODO
         print("import from record folder and spin up the editor soon ...")
 

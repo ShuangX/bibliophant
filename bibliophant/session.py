@@ -32,12 +32,12 @@ def resolve_root(root_folder: str) -> Path:
     Raises ValueError if it is not a folder.
     """
     try:
-        root = Path(root_folder).resolve(strict=True)
+        root = Path(root_folder).expanduser().resolve(strict=True)
     except FileNotFoundError:
-        raise FileNotFoundError(f"the path {root} could not be resolved.")
+        raise FileNotFoundError(f"the path {root_folder} could not be resolved.")
 
     if not root.is_dir():
-        raise ValueError(f"the path {root} is not a folder")
+        raise ValueError(f"the path {root_folder} is not a folder")
 
     return root
 

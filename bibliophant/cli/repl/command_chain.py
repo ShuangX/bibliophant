@@ -63,7 +63,7 @@ class CommandChain(Command):
             ),
         }
 
-    def execute(self, arguments, session, root, result=None):
+    def execute(self, arguments, session, config, result=None):
         """Split query into chain-segments and delegate the execution."""
 
         segments = arguments.split(" : ")
@@ -96,7 +96,7 @@ class CommandChain(Command):
 
         # delegate execution of each segment
         for command, arguments in segments:
-            result = command.execute(arguments, session, root, result)
+            result = command.execute(arguments, session, config, result)
 
     def add(self, command_name: str, case_name: str):
         """Class decorator for adding a Command as a sub-command of the 'case_name' case.
