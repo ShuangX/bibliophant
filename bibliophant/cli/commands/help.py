@@ -135,24 +135,20 @@ only the first <limit> most recent results will be passed on.
     Passes on all or the <limit> most-recently added records.
 
 `get tag <tag name> [<limit>]` --> {records}
-    Given the name of a tag,
-    gets all records which carry this tag from the database,
-    and passes them on to the follow-up command.
+    Passes on all or the <limit> most-recently added records,
+    which carry the given tag.
 
 `get author <author name> [<limit>]` --> {records}
-    Given the name of an author,
-    gets all records by this author from the database,
-    and passes them on to the follow-up command.
+    Passes on all or the <limit> most-recently added records,
+    which are written by the given author.
 
 `get journal <journal name> [<limit>]` --> {records}
-    Given the name of a journal,
-    gets all articles published therein from the database,
-    and passes them on to the follow-up command.
+    Passes on all or the <limit> most-recently added articles,
+    which were published in the given journal.
 
 `get publisher <journal name> [<limit>]` --> {records}
-    Given the name of a publisher,
-    gets all books with this publisher from the database,
-    and passes them on to the follow-up command.
+    Passes on all or the <limit> most-recently added books,
+    which were published by the given publisher.
 
 
 ## Follow-up sub-queries (the receiving-producing kind)

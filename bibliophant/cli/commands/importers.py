@@ -1,4 +1,4 @@
-"""This module defines the import command group of the application."""
+"""This module defines the 'import' command group of the application."""
 
 from ..repl import Command
 from .bib import bib

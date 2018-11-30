@@ -54,3 +54,36 @@ class AddRecord(Command):
     def get_completions(self, document, complete_event):
         # TODO
         return []
+
+
+@bib.add("show", "receiving-closed")
+class Show(Command):
+    def execute(self, arguments, session, config, result=None):
+        # TODO
+        print("Show info about all received records")
+
+    def get_completions(self, document, complete_event):
+        # TODO
+        return []
+
+
+@bib.add("open", "receiving-closed")
+class Open(Command):
+    def execute(self, arguments, session, config, result=None):
+        # TODO
+        print("Open PDF or record folder of all received records")
+
+    def get_completions(self, document, complete_event):
+        # TODO
+        return []
+
+
+@bib.add("delete", "receiving-closed")
+class Delete(Command):
+    def execute(self, arguments, session, config, result=None):
+        # TODO
+        print("delete a record")
+
+    def get_completions(self, document, complete_event):
+        # TODO
+        return []

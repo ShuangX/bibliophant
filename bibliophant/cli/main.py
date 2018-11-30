@@ -10,7 +10,9 @@ from pathlib import Path
 
 from ..session import resolve_root, start_engine, session_scope
 from .repl import Repl, QueryAbortError, print_error
+from .repl.misc import ask_yes_no
 from .commands import root_command
+from .config_wizard import config_wizard
 
 
 def bib():
@@ -24,9 +26,12 @@ def bib():
         with open(config_file, "r") as file:
             config = json.load(file)
     except FileNotFoundError:
-        # TODO configuration wizard
-        print_error(f'no configuration file found at "{config_file}"')
-        sys.exit(-1)
+        print_error(f"The configuration file {config_file} does not exist.")
+        if ask_yes_no("Do you want the configuration wizard's help to create it?"):
+            config = config_wizard(config_file)
+        else:
+            sys.exit(-1)
+
     except json.decoder.JSONDecodeError:
         print_error(
             f'There seems to be a problem with configuration file "{config_file}".\n'

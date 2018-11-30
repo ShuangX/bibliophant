@@ -3,5 +3,5 @@
 __all__ = ["root_command"]
 
 from .bib import bib as root_command
-from . import importers
-from . import help
+
+from . import exporters, get, help, importers, tag_untag
