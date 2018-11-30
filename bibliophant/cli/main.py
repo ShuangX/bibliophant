@@ -85,6 +85,7 @@ def bib():
 
     # open the collection's root folder
     try:
+        # add the chosen collection's root to the config dict!
         config["root"] = resolve_root(config["root"])
     except:
         print_error(f"The folder \"{config['root']}\" was not found.")

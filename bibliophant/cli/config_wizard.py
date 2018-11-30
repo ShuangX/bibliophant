@@ -6,7 +6,6 @@ This wizard is called if no configuration is found.
 
 
 from pathlib import Path
-import sys
 import json
 
 from .repl import print_error
@@ -23,7 +22,7 @@ def config_wizard(config_file: Path):
 
     config = {}
 
-    ## collections field
+    # collections field
 
     print(
         "\nThe most important information in the configuration file is a list of your bibliophant collections."
@@ -38,7 +37,7 @@ def config_wizard(config_file: Path):
         "You may use '~' to refer to your home directory (example: '~/my_collection')."
     )
     print(
-        "\The first collection you specify will be opened by default whenever you run 'bib' without the '-c' option."
+        "The first collection you specify will be opened by default whenever you run 'bib' without the '-c' option."
     )
 
     collections = [
@@ -52,7 +51,7 @@ def config_wizard(config_file: Path):
 
     config["collections"] = collections
 
-    ## open_pdf field
+    # open_pdf field
 
     print(
         "\nThe next thing is to tell bibliophant about the shell command it should use to launch the PDF viewer."
@@ -63,14 +62,14 @@ def config_wizard(config_file: Path):
 
     config["open_pdf"] = prompt("Enter the command used to open PDF documents: ")
 
-    ## open_folder field
+    # open_folder field
 
     print("\nNow specify the command to open a record folder.")
     print("On macOS it makes even more sense here to use 'open'.")
 
     config["open_folder"] = prompt("Enter the command used to open record folders: ")
 
-    ## delete_folder
+    # delete_folder field
 
     print("\nPlease also specify a command used to delete a record folder.")
     print("A popular option is 'rm -Rf'.")
@@ -82,7 +81,17 @@ def config_wizard(config_file: Path):
         "Enter the command used to delete record folders: "
     )
 
-    ## complete
+    # history field
+
+    print("\nBibliophant supports a persistent history file for every collection.")
+    print(
+        "If enabled, this will place a '.cli_history' file inside each collection's root folder."
+    )
+    config["history"] = ask_yes_no(
+        "Do you want to enable a persistent command history?"
+    )
+
+    # complete process
 
     try:
         with open(config_file, "w+") as file:  # mode 'w+' creates file

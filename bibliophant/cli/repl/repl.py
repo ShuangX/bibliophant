@@ -9,9 +9,11 @@ into its own transactional scope (session_scope context manager).
 __all__ = ["Repl"]
 
 
-from typing import Dict
+from typing import Dict, Optional
+import sys
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
 
 from bibliophant.session import session_scope
 
@@ -31,6 +33,7 @@ class Repl:
         """run the REPL"""
 
         prompt_session = PromptSession(
+            history=get_history(self.config),
             completer=self.root_command,
             # complete_while_typing=True,
             vi_mode=True,
@@ -62,3 +65,32 @@ class Repl:
         # On EOF (Ctrl-D), exit the REPL
         except EOFError:
             pass
+
+
+def get_history(config) -> Optional[FileHistory]:
+    """Returns a FileHistory object,
+    if history is enabled in the configuration file.
+    Otherwise returns None.
+    """
+
+    # parse the value in the configuration file
+
+    try:
+        enabled = config["history"]
+    except KeyError:
+        enabled = False
+
+    if not isinstance(enabled, bool):
+        print_error(
+            "The history field in the configuration file must be a boolean value."
+        )
+        print("Please put 'history: true' or 'history: false'.")
+        sys.exit(-1)
+
+    # return the according value
+
+    if enabled:
+        history_file = config["root"] / ".cli_history"
+        return FileHistory(history_file)
+
+    return None
