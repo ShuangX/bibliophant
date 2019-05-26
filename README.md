@@ -37,11 +37,35 @@ Bibliophant talks to [SQLite](https://www.sqlite.org) through
 
 ## Getting started
 
-TODO
+Development installation:
 
-1. installing bibliophant with pip
-2. initializing a collection
-3. setting a shell variable pointing to your default collection
+It is assumed that Python 3 is installed.
+
+1. (fork and) clone the repository
+```
+cd ...
+git clone https://github.com/MarkusLohmayer/bibliophant
+cd bibliophant
+```
+Of course, you can also fork the repository on GitHub which allows you to contribute to the project by suggesting pull requests.
+```
+git clone https://github.com/<your user>/bibliophant
+cd bibliophant
+git remote add upstream https://github.com/MarkusLohmayer/bibliophant
+```
+
+2. create a virtual environment
+```
+cd .../bibliophant
+python3 -m venv venv
+source venv/bin/activate
+pip install .
+```
+you can create a symlink to the bib command from some directory that is in your $PATH:
+```
+ln -s .../bibliophant/venv/bin/bib .../bib
+```
+
 
 ## News
 
